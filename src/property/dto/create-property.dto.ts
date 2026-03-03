@@ -1,3 +1,5 @@
+import { IsOptional, IsNumber } from 'class-validator';
+
 export class CreatePropertyDto {
   title: string;
   description?: string;
@@ -8,4 +10,12 @@ export class CreatePropertyDto {
   bathrooms?: number;
   address?: string;
   agent_id?: string;
+
+  @IsOptional()
+  @IsNumber()
+  lat?: number;
+
+  @IsOptional()
+  @IsNumber()
+  lng?: number;
 }

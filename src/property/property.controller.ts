@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { PropertyService } from './property.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
+import { FilesInterceptor } from '@nestjs/platform-express/multer';
+import { memoryStorage } from 'multer';
 
 @Controller('properties')
 export class PropertyController {
@@ -21,7 +23,7 @@ export class PropertyController {
         return this.propertyService.findAll();
     }
 
-    
+
     // Search / Filter
     @Get('search')
     search(@Query() query: any) {
@@ -48,5 +50,14 @@ export class PropertyController {
         return this.propertyService.remove(id);
     }
 
+
+    @Post(':id/images')
+    @UseInterceptors(FilesInterceptor('files', 10, { storage: memoryStorage() }))
+    async uploadImages(
+        @Param('id') id: string,
+        @UploadedFiles() files: Express.Multer.File[]
+    ) {
+        return this.propertyService.uploadImages(id, files);
+    }
 
 }

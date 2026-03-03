@@ -34,6 +34,16 @@ export class Property {
 
   @Prop()
   agent_id: string;
+
+  //for images: we store images as an array of objects with data,
+
+  @Prop({ type: [{ data: String, mimetype: String, name: String }], default: [] })
+  images: { data: string; mimetype: string; name: string }[];
+
+  //geo location
+  @Prop() lat: number;
+  @Prop() lng: number;
 }
+
 
 export const PropertySchema = SchemaFactory.createForClass(Property);

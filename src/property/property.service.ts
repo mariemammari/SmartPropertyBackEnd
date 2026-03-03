@@ -95,4 +95,22 @@ async update(id: string, updatePropertyDto: UpdatePropertyDto) {
 
 
 
+async uploadImages(id: string, files: Express.Multer.File[]) {
+  const property = await this.propertyModel.findById(id);
+  if (!property) throw new NotFoundException('Property not found');
+
+  const newImages = files.map(file => ({
+    data: file.buffer.toString('base64'),
+    mimetype: file.mimetype,
+    name: file.originalname,
+  }));
+
+  property.images = [...(property.images || []), ...newImages];
+  await property.save();
+
+  return { message: 'Images uploaded', count: newImages.length };
+}
+
+
+
 }
