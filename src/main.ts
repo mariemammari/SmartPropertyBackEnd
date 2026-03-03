@@ -1,10 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-
+import * as dns from 'dns';
+import * as dotenv from 'dotenv';
+dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
   // Enable CORS for frontend communication
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
