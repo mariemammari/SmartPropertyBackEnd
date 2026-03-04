@@ -15,7 +15,19 @@ export class Branch {
   phone: string;
 
   @Prop({ default: true })
-  isActive: boolean;
+  Open: boolean;
+
+  @Prop()
+  branch_manager_id: string;
+
+  @Prop()
+  email: string;
+
+  @Prop()
+  open_time: string;
+
+  @Prop()
+  close_time: string;
 }
 
 export const BranchSchema = SchemaFactory.createForClass(Branch);
