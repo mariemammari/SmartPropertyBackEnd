@@ -4,8 +4,12 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { setDefaultResultOrder } from 'dns';
+import { VisitsModule } from './visits/Visits.module';
+
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { PropertyModule } from './property/PropertyModule';
 
 @Module({
   imports: [
@@ -20,7 +24,10 @@ import { UserModule } from './user/user.module';
       inject: [ConfigService],
     }),
     MailerModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule,
+        PropertyModule,
+        VisitsModule,
+      ],
       useFactory: async (configService: ConfigService) => ({
         transport: {
           host: configService.get<string>('SMTP_HOST'),
@@ -42,8 +49,18 @@ import { UserModule } from './user/user.module';
     }),
     AuthModule,
     UserModule,
+    PropertyModule,
+    VisitsModule,
+
+
+
+
+
+
+
+
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
