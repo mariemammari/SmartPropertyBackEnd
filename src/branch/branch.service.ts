@@ -1,42 +1,39 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Branch, BranchDocument } from './schemas/branch.schema';
+import { Branch } from './schemas/branch.schema';
 import { CreateBranchDto } from './dto/create-branch.dto';
 import { UpdateBranchDto } from './dto/update-branch.dto';
 
 @Injectable()
 export class BranchService {
-  constructor(
-    @InjectModel(Branch.name) private branchModel: Model<BranchDocument>,
-  ) {}
+    constructor(@InjectModel(Branch.name) private branchModel: Model<Branch>) { }
 
-  async create(createBranchDto: CreateBranchDto): Promise<Branch> {
-    const branch = new this.branchModel(createBranchDto);
-    return branch.save();
-  }
+    // CREATE
+    async create(createBranchDto: CreateBranchDto): Promise<Branch> {
+        const newBranch = new this.branchModel(createBranchDto);
+        return newBranch.save();
+    }
 
-  async findAll(): Promise<Branch[]> {
-    return this.branchModel.find().exec();
-  }
+    // READ ALL
+    async findAll(): Promise<Branch[]> {
+        return this.branchModel.find().exec();
+    }
 
-  async findOne(id: string): Promise<Branch> {
-    const branch = await this.branchModel.findById(id).exec();
-    if (!branch) throw new NotFoundException(`Branch #${id} not found`);
-    return branch;
-  }
+    // READ ONE
+    async findById(id: string): Promise<Branch | null> {
+        return this.branchModel.findById(id).exec();
+    }
 
-  async update(id: string, updateBranchDto: UpdateBranchDto): Promise<Branch> {
-    const branch = await this.branchModel
-      .findByIdAndUpdate(id, updateBranchDto, { new: true })
-      .exec();
-    if (!branch) throw new NotFoundException(`Branch #${id} not found`);
-    return branch;
-  }
+    // UPDATE
+    async update(id: string, updateBranchDto: UpdateBranchDto): Promise<Branch | null> {
+        return this.branchModel
+            .findByIdAndUpdate(id, updateBranchDto, { new: true })
+            .exec();
+    }
 
-  async remove(id: string): Promise<{ message: string }> {
-    const branch = await this.branchModel.findByIdAndDelete(id).exec();
-    if (!branch) throw new NotFoundException(`Branch #${id} not found`);
-    return { message: `Branch #${id} deleted successfully` };
-  }
+    // DELETE
+    async delete(id: string): Promise<Branch | null> {
+        return this.branchModel.findByIdAndDelete(id).exec();
+    }
 }

@@ -1,33 +1,40 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { Document } from 'mongoose';
 
-export type BranchDocument = HydratedDocument<Branch>;
+export type BranchStatus = 'active' | 'inactive';
 
-@Schema({ timestamps: true })
-export class Branch {
-  @Prop({ required: true })
-  name: string;
+@Schema()
+export class Branch extends Document {
+    @Prop({ required: true })
+    name: string;
 
-  @Prop({ required: true })
-  location: string;
+    @Prop({ required: true })
+    address: string;
 
-  @Prop()
-  phone: string;
+    @Prop({ required: true })
+    city: string;
 
-  @Prop({ default: true })
-  Open: boolean;
+    @Prop({ required: true })
+    phone_number: string;
 
-  @Prop()
-  branch_manager_id: string;
+    @Prop({ required: true })
+    email: string;
 
-  @Prop()
-  email: string;
+    @Prop({
+        required: true,
+        enum: ['active', 'inactive'],
+        default: 'active'
+    })
+    status: BranchStatus;
 
-  @Prop()
-  open_time: string;
+    @Prop({ required: true })
+    opening_time: string;  // e.g., "09:00"
 
-  @Prop()
-  close_time: string;
+    @Prop({ required: true })
+    closing_time: string;  // e.g., "18:00"
+
+    @Prop({ default: Date.now })
+    created_at: Date;
 }
 
 export const BranchSchema = SchemaFactory.createForClass(Branch);
