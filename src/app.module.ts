@@ -10,6 +10,7 @@ import { VisitsModule } from './visits/Visits.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { PropertyModule } from './property/PropertyModule';
+import { BranchModule } from './branch/branch.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { PropertyModule } from './property/PropertyModule';
     UserModule,
     PropertyModule,
     VisitsModule,
+    BranchModule,
 
 
 
