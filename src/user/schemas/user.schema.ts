@@ -9,8 +9,9 @@ export enum UserRole {
   ACCOUNTANT = 'accountant',
   REAL_ESTATE_AGENT = 'real_estate_agent',
   RENTAL_MANAGER = 'rental_manager',
-  PROPERTY_OWNER = 'property_owner',
-  TENANT = 'tenant',
+  // PROPERTY_OWNER = 'property_owner',
+  // TENANT = 'tenant',
+  CLIENT = 'client',  
 }
 
 export enum UserStatus {
@@ -51,7 +52,7 @@ export class User {
   @Prop({
     type: String,
     enum: Object.values(UserRole),
-    default: UserRole.TENANT,
+    default: UserRole.CLIENT,
   })
   role: UserRole;
 
