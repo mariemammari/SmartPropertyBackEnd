@@ -182,7 +182,7 @@ export class AuthService {
         state: '',
         city: '',
         dateOfBirth: '',
-        role: 'tenant', 
+        role: 'client', 
       };
       user = await this.userService.create(signUpDto);
     }

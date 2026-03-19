@@ -6,8 +6,11 @@ import {
   IsOptional,
   IsEnum,
   Matches,
+  ValidateIf,
 } from 'class-validator';
 import { UserRole } from '../schemas/user.schema';
+import { RequiresBranchIfManager } from '../decorators/requires-branch.decorator';
+import { RequiresDobIfClient } from '../decorators/requires-dob-if-client.decorator';
 
 export class SignUpDto {
   @IsNotEmpty()
@@ -22,6 +25,17 @@ export class SignUpDto {
   @IsEmail()
   email: string;
 
+
+ @ValidateIf(o => o.role === UserRole.CLIENT)
+  @IsNotEmpty()
+  @IsString()
+  city: string;
+
+  @ValidateIf(o => o.role === UserRole.CLIENT)
+  @IsNotEmpty()
+  @IsString()
+  state: string;
+
   @IsNotEmpty()
   @IsString()
   @Matches(/^[0-9+\-\s()]+$/, {
@@ -29,13 +43,7 @@ export class SignUpDto {
   })
   phone: string;
 
-  @IsNotEmpty()
-  @IsString()
-  state: string;
 
-  @IsNotEmpty()
-  @IsString()
-  city: string;
 
   @IsNotEmpty()
   @IsString()
@@ -46,8 +54,17 @@ export class SignUpDto {
   @IsEnum(UserRole)
   role?: UserRole;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  dateOfBirth: string;
+  @RequiresDobIfClient()
+  dateOfBirth?: string;
+
+
+  // Optional field for branch managers
+  // NEW FIELD: branchId with custom validation
+  @IsOptional()
+  @IsString()
+  @RequiresBranchIfManager()
+  branchId?: string;
 }
 

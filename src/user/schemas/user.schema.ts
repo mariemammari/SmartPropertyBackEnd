@@ -11,7 +11,7 @@ export enum UserRole {
   RENTAL_MANAGER = 'rental_manager',
   // PROPERTY_OWNER = 'property_owner',
   // TENANT = 'tenant',
-  CLIENT = 'client',  
+  CLIENT = 'client',
 }
 
 export enum UserStatus {
@@ -31,6 +31,8 @@ export class User {
   @Prop({ required: true })
   phone: string;
 
+
+
   @Prop({ required: false })
   password?: string;
 
@@ -46,8 +48,9 @@ export class User {
   @Prop({ required: false })
   resetPasswordExpires?: Date;
 
-  @Prop({ type: [String], default: [] })
-  properties: string[];
+  // should be like this  
+  // @Prop({ type: [String], default: [] })
+  // properties: string[];
 
   @Prop({
     type: String,
@@ -55,6 +58,13 @@ export class User {
     default: UserRole.CLIENT,
   })
   role: UserRole;
+
+  // NEW FIELD: dateOfBirth
+  @Prop({ required: false })
+  dateOfBirth?: Date;
+  // NEW FIELD: branchId for branch managers
+  @Prop({ type: String, required: false })
+  branchId?: string;
 
   @Prop({ type: [String], default: [] })
   documents: string[];
