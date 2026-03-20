@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { PropertyModule } from './property/PropertyModule';
 import { BranchModule } from './branch/branch.module';
+import { PropertyCollectionsModule } from './propertyCollections/Propertycollectionsmodule';  
 
 @Module({
   imports: [
@@ -53,12 +54,8 @@ import { BranchModule } from './branch/branch.module';
     PropertyModule,
     VisitsModule,
     BranchModule,
-
-
-
-
-
-
+    PropertyCollectionsModule
+  
 
 
   ],

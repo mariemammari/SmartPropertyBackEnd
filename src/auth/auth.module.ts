@@ -13,7 +13,7 @@ import { FacebookStrategy } from './strategies/facebook.strategy';
     UserModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+      secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
       signOptions: { expiresIn: '24h' },
     }),
   ],
@@ -21,5 +21,5 @@ import { FacebookStrategy } from './strategies/facebook.strategy';
   providers: [AuthService, JwtStrategy, GoogleStrategy, FacebookStrategy],
   exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }
 

@@ -3,7 +3,8 @@
 /node_modules
 /build
 
-
+# Work in progress modules
+/src/propertyCollections
 
 .env
 

@@ -131,4 +131,44 @@ export class UsersController {
     }
     return { branchId };
   }
+
+
+  /**
+ * Get all staff users (super_admin, branch_manager, real_estate_agent, accountant)
+ */
+  @Get('staff/all')
+
+  async getAllStaff(): Promise<any> {
+    const users = await this.userService.findAllStaff();
+    const sanitizedUsers = users.map(user => {
+      const { password, ...result } = user.toObject();
+      return result;
+    });
+    return {
+      message: 'Staff users retrieved successfully',
+      count: sanitizedUsers.length,
+      users: sanitizedUsers,
+    };
+  }
+
+  /**
+   * Get all client users
+   */
+  @Get('clients/all')
+
+  async getAllClients(): Promise<any> {
+    const users = await this.userService.findAllClients();
+    const sanitizedUsers = users.map(user => {
+      const { password, ...result } = user.toObject();
+      return result;
+    });
+    return {
+      message: 'Client users retrieved successfully',
+      count: sanitizedUsers.length,
+      users: sanitizedUsers,
+    };
+  }
+
+
+
 }

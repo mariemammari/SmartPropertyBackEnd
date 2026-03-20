@@ -147,5 +147,26 @@ export class UserService {
     return user.branchId || null;
   }
 
+  /**
+ * Find all users with staff roles (super_admin, branch_manager, real_estate_agent, accountant)
+ */
+  async findAllStaff(): Promise<UserDocument[]> {
+    const staffRoles = [
+      UserRole.SUPER_ADMIN,
+      UserRole.BRANCH_MANAGER,
+      UserRole.REAL_ESTATE_AGENT,
+      UserRole.ACCOUNTANT
+    ];
+
+    return this.userModel.find({ role: { $in: staffRoles } }).exec();
+  }
+
+  /**
+   * Find all users with CLIENT role
+   */
+  async findAllClients(): Promise<UserDocument[]> {
+    return this.userModel.find({ role: UserRole.CLIENT }).exec();
+  }
+
 }
 
