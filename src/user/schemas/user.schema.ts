@@ -8,7 +8,7 @@ export enum UserRole {
   BRANCH_MANAGER = 'branch_manager',
   ACCOUNTANT = 'accountant',
   REAL_ESTATE_AGENT = 'real_estate_agent',
-  RENTAL_MANAGER = 'rental_manager',
+  // RENTAL_MANAGER = 'rental_manager',
   // PROPERTY_OWNER = 'property_owner',
   // TENANT = 'tenant',
   CLIENT = 'client',
