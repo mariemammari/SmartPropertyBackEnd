@@ -31,7 +31,8 @@ export class User {
   @Prop({ required: true })
   phone: string;
 
-
+  @Prop({ default: '' })
+  city: string;
 
   @Prop({ required: false })
   password?: string;

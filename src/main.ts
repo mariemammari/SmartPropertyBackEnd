@@ -5,6 +5,10 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as dns from 'dns';
 import * as dotenv from 'dotenv';
+import * as express from 'express';
+
+// Load environment variables FIRST
+dotenv.config();
 
 import { v2 as cloudinary } from 'cloudinary';
 cloudinary.config({
@@ -13,14 +17,17 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-dotenv.config();
-
 
 async function bootstrap() {
   dns.setServers(['8.8.8.8', '1.1.1.1']);
 
   const app = await NestFactory.create(AppModule);
   dns.setServers(['8.8.8.8', '1.1.1.1']);
+  
+  // Increase request body limit to 50MB for photo uploads
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
   // Enable CORS for frontend communication
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
