@@ -11,7 +11,8 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { PropertyModule } from './property/PropertyModule';
 import { BranchModule } from './branch/branch.module';
-import { PropertyCollectionsModule } from './propertyCollections/Propertycollectionsmodule';  
+import { PropertyListingModule } from './property-listing/property-listing.module';
+import { PropertyMediaModule } from './Property-Media/property-media.module';
 
 @Module({
   imports: [
@@ -54,7 +55,8 @@ import { PropertyCollectionsModule } from './propertyCollections/Propertycollect
     PropertyModule,
     VisitsModule,
     BranchModule,
-    PropertyCollectionsModule
+    PropertyListingModule,
+    PropertyMediaModule
   
 
 
