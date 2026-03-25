@@ -81,7 +81,7 @@ export class PropertyController {
   // ── Create ────────────────────────────────────────────────────────────────
   @Post()
   create(@Body() dto: CreatePropertyDto, @Request() req) {
-      console.log('req.user:', req.user); // log
+    console.log('req.user:', req.user); // log
 
     const { userId, role } = req.user;
 
@@ -97,9 +97,16 @@ export class PropertyController {
     return this.propertiesService.create(dto);
   }
 
-  // ── Get All ───────────────────────────────────────────────────────────────
+  // ── Get All 
   @Get()
-  findAll(@Query() filters: PropertyFilterDto) {
+  findAll(@Query() filters: PropertyFilterDto, @Request() req) {
+    const { userId, role } = req.user;
+
+    // Agent voit uniquement ses propriétés
+    if (role === UserRole.REAL_ESTATE_AGENT) {
+      filters.createdBy = userId;
+    }
+
     return this.propertiesService.findAll(filters);
   }
 
