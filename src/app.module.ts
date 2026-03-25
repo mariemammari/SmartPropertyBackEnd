@@ -13,6 +13,9 @@ import { PropertyModule } from './property/PropertyModule';
 import { BranchModule } from './branch/branch.module';
 import { PropertyListingModule } from './property-listing/property-listing.module';
 import { PropertyMediaModule } from './Property-Media/property-media.module';
+import { NotificationModule } from './notification/notification.module';
+import { ApplicationModule } from './application/application.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -56,7 +59,10 @@ import { PropertyMediaModule } from './Property-Media/property-media.module';
     VisitsModule,
     BranchModule,
     PropertyListingModule,
-    PropertyMediaModule
+    PropertyMediaModule,
+    NotificationModule,
+    ApplicationModule,
+    NotificationsModule
   
 
 
