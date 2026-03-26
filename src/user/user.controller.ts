@@ -12,7 +12,11 @@ import {
   Request,
   NotFoundException,
   BadRequestException,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { UserService } from './user.service';
 import { SignUpDto } from './dto/signup.dto';
 import { UpdateUserDto } from './dto/update.dto';
@@ -74,6 +78,87 @@ export class UsersController {
     return {
       message: 'Profile updated successfully',
       user: result,
+    };
+  }
+
+  /**
+   * Upload profile photo
+   */
+  @Post('profile/photo')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('photo', { storage: memoryStorage() }))
+  async uploadProfilePhoto(
+    @Request() req,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<any> {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    const userId = req.user.userId || req.user._id || req.user.sub;
+    const photoUrl = await this.userService.uploadPhoto(
+      userId,
+      file.buffer,
+      file.mimetype,
+    );
+
+    return {
+      message: 'Photo uploaded successfully',
+      photoUrl,
+    };
+  }
+
+  /**
+   * Save photo URL (for client-side Cloudinary uploads)
+   */
+  @Post('profile/photo-url')
+  @UseGuards(JwtAuthGuard)
+  async savePhotoUrl(
+    @Request() req,
+    @Body() body: { photoUrl: string },
+  ): Promise<any> {
+    if (!body.photoUrl) {
+      throw new BadRequestException('photoUrl is required');
+    }
+
+    const userId = req.user.userId || req.user._id || req.user.sub;
+    const photoUrl = await this.userService.updatePhotoUrl(
+      userId,
+      body.photoUrl,
+    );
+
+    return {
+      message: 'Photo URL saved successfully',
+      photoUrl,
+    };
+  }
+
+  /**
+   * Change user password
+   */
+  @Put('profile/password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @Request() req,
+    @Body() body: { currentPassword: string; newPassword: string },
+  ): Promise<any> {
+    const userId = req.user.userId || req.user._id || req.user.sub;
+    const { currentPassword, newPassword } = body;
+
+    if (!currentPassword || !newPassword) {
+      throw new BadRequestException(
+        'currentPassword and newPassword are required',
+      );
+    }
+
+    await this.userService.changePassword(
+      userId,
+      currentPassword,
+      newPassword,
+    );
+
+    return {
+      message: 'Password changed successfully',
     };
   }
 
