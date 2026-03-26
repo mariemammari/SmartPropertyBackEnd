@@ -3,6 +3,7 @@ import { Document } from 'mongoose';
 
 export type PropertyDocument = Property & Document;
 
+<<<<<<< HEAD
 @Schema({ _id: false })
 class GeoPoint {
   @Prop({ type: String, enum: ['Point'], required: true, default: 'Point' })
@@ -13,6 +14,8 @@ class GeoPoint {
 }
 const GeoPointSchema = SchemaFactory.createForClass(GeoPoint);
 
+=======
+>>>>>>> origin/aymen
 @Schema({ timestamps: true })
 export class Property {
   @Prop({ required: true })

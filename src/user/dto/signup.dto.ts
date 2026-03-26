@@ -9,7 +9,7 @@ import {
   ValidateIf,
 } from 'class-validator';
 import { UserRole } from '../schemas/user.schema';
-import { RequiresBranchIfManager } from '../decorators/requires-branch.decorator';
+import { RequiresBranchIfManagerOrAccountant } from '../decorators/requires-branch.decorator';
 import { RequiresDobIfClient } from '../decorators/requires-dob-if-client.decorator';
 
 export class SignUpDto {
@@ -64,7 +64,7 @@ export class SignUpDto {
   // NEW FIELD: branchId with custom validation
   @IsOptional()
   @IsString()
-  @RequiresBranchIfManager()
+  @RequiresBranchIfManagerOrAccountant()
   branchId?: string;
 }
 

@@ -109,6 +109,12 @@ export class User {
 
   @Prop({ required: false })
   currentWebAuthnChallenge?: string;
+
+  @Prop({ default: Date.now })
+  lastSeen: Date;
+
+  @Prop({ type: String, default: '' })
+  signature?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

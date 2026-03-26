@@ -180,7 +180,7 @@ export class UsersController {
    * Update user by ID
    */
   @Put(':id')
-
+  @UseGuards(JwtAuthGuard)
   async updateUser(
     @Param('id') id: string,
     @Body() updateData: UpdateUserDto,
@@ -189,6 +189,23 @@ export class UsersController {
     const { password, ...result } = user.toObject();
     return {
       message: 'User updated successfully',
+      user: result,
+    };
+  }
+
+  /**
+   * Update user by ID with branch assignment (admin only)
+   */
+  @Put('admin/:id')
+  @UseGuards(JwtAuthGuard)
+  async updateUserWithBranch(
+    @Param('id') id: string,
+    @Body() updateData: UpdateUserDto,
+  ): Promise<any> {
+    const user = await this.userService.updateUser(id, updateData);
+    const { password, ...result } = user.toObject();
+    return {
+      message: 'User updated successfully with branch assignment',
       user: result,
     };
   }
@@ -222,7 +239,7 @@ export class UsersController {
  * Get all staff users (super_admin, branch_manager, real_estate_agent, accountant)
  */
   @Get('staff/all')
-
+  @UseGuards(JwtAuthGuard)
   async getAllStaff(): Promise<any> {
     const users = await this.userService.findAllStaff();
     const sanitizedUsers = users.map(user => {
@@ -240,7 +257,7 @@ export class UsersController {
    * Get all client users
    */
   @Get('clients/all')
-
+  @UseGuards(JwtAuthGuard)
   async getAllClients(): Promise<any> {
     const users = await this.userService.findAllClients();
     const sanitizedUsers = users.map(user => {
