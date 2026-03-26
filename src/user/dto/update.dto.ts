@@ -1,6 +1,6 @@
 import { IsString, IsEmail, IsOptional, IsEnum, IsDateString, IsDate } from 'class-validator';
 import { UserRole, UserStatus } from '../schemas/user.schema';
-import { RequiresBranchIfManager } from '../decorators/requires-branch.decorator';
+import { RequiresBranchIfManagerOrAccountant } from '../decorators/requires-branch.decorator';
 import { RequiresDobIfClient } from '../decorators/requires-dob-if-client.decorator';
 import { Type } from 'class-transformer';
 
@@ -21,6 +21,9 @@ export class UpdateUserDto {
     @IsString()
     password?: string;
 
+    @IsOptional()
+    @IsString()
+    city?: string;
 
     @IsOptional()
     @IsString()
@@ -32,7 +35,7 @@ export class UpdateUserDto {
 
     @IsOptional()
     @IsString()
-    @RequiresBranchIfManager()
+    @RequiresBranchIfManagerOrAccountant()
     branchId?: string;
 
     @IsOptional()
@@ -70,4 +73,10 @@ export class UpdateUserDto {
     @IsDate()
     @Type(() => Date)
     resetPasswordExpires?: Date; // ← Changed from string to Date
+
+
+    @IsOptional()
+    @IsString()
+    signature?: string;
+
 }

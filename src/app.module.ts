@@ -4,18 +4,21 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ChatModule } from './chat/chat.module';
 import { setDefaultResultOrder } from 'dns';
 import { VisitsModule } from './visits/Visits.module';
-
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { PropertyModule } from './property/PropertyModule';
 import { BranchModule } from './branch/branch.module';
+import { ComplaintModule } from './complaint/complaint.module';
 import { PropertyListingModule } from './property-listing/property-listing.module';
 import { PropertyMediaModule } from './Property-Media/property-media.module';
 import { NotificationModule } from './notification/notification.module';
 import { ApplicationModule } from './application/application.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { AiModule } from './ai/ai.module';
+import { FinanceModule } from './finance/finance.module';
 
 @Module({
   imports: [
@@ -58,13 +61,15 @@ import { NotificationsModule } from './notifications/notifications.module';
     PropertyModule,
     VisitsModule,
     BranchModule,
+    ComplaintModule,
     PropertyListingModule,
     PropertyMediaModule,
     NotificationModule,
     ApplicationModule,
-    NotificationsModule
-  
-
+    NotificationsModule,
+    ChatModule,
+    AiModule,
+    FinanceModule,
 
   ],
   controllers: [AppController],

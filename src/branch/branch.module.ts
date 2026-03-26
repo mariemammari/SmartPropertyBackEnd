@@ -10,6 +10,9 @@ import { BranchController } from './branch.controller';
     ],
     controllers: [BranchController],
     providers: [BranchService],
-    exports: [BranchService],
+    exports: [
+        MongooseModule, // <-- ADD THIS: exports BranchModel to other modules
+        BranchService,  // optional: if other modules need BranchService too
+    ],
 })
-export class BranchModule { }
+export class BranchModule {}

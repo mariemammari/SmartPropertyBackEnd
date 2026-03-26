@@ -168,5 +168,99 @@ export class UserService {
     return this.userModel.find({ role: UserRole.CLIENT }).exec();
   }
 
+  /**
+   * Change password for a user
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<UserDocument> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Verify current password
+    const isPasswordValid = await this.validatePassword(
+      currentPassword,
+      user.password || '',
+    );
+    if (!isPasswordValid) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+
+    // Hash new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user with new password
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      userId,
+      { password: hashedNewPassword },
+      { new: true },
+    );
+
+    if (!updatedUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    return updatedUser;
+  }
+
+  /**
+   * Update user photo URL (photo already uploaded to Cloudinary by client)
+   */
+  async updatePhotoUrl(userId: string, photoUrl: string): Promise<string> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (!photoUrl || typeof photoUrl !== 'string') {
+      throw new BadRequestException('Invalid photo URL');
+    }
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      userId,
+      { photo: photoUrl },
+      { new: true },
+    );
+
+    if (!updatedUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    return photoUrl;
+  }
+
+  /**
+   * Upload photo to Cloudinary and save URL to user profile (legacy method)
+   */
+  async uploadPhoto(
+    userId: string,
+    fileBuffer: Buffer,
+    mimetype: string,
+  ): Promise<string> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Fallback: Store as base64 in MongoDB for development/testing
+    const base64Photo = `data:${mimetype};base64,${fileBuffer.toString('base64')}`;
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      userId,
+      { photo: base64Photo },
+      { new: true },
+    );
+
+    if (!updatedUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    return base64Photo;
+  }
+
 }
 

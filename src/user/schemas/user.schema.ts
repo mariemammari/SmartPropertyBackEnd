@@ -8,7 +8,7 @@ export enum UserRole {
   BRANCH_MANAGER = 'branch_manager',
   ACCOUNTANT = 'accountant',
   REAL_ESTATE_AGENT = 'real_estate_agent',
-  RENTAL_MANAGER = 'rental_manager',
+  // RENTAL_MANAGER = 'rental_manager',
   // PROPERTY_OWNER = 'property_owner',
   // TENANT = 'tenant',
   CLIENT = 'client',
@@ -31,7 +31,8 @@ export class User {
   @Prop({ required: true })
   phone: string;
 
-
+  @Prop({ default: '' })
+  city: string;
 
   @Prop({ required: false })
   password?: string;
@@ -108,6 +109,12 @@ export class User {
 
   @Prop({ required: false })
   currentWebAuthnChallenge?: string;
+
+  @Prop({ default: Date.now })
+  lastSeen: Date;
+
+  @Prop({ type: String, default: '' })
+  signature?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
