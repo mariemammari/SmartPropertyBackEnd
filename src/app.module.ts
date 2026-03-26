@@ -13,6 +13,11 @@ import { PropertyModule } from './property/PropertyModule';
 import { BranchModule } from './branch/branch.module';
 import { PropertyCollectionsModule } from './propertyCollections/Propertycollectionsmodule';
 import { ComplaintModule } from './complaint/complaint.module';
+import { PropertyListingModule } from './property-listing/property-listing.module';
+import { PropertyMediaModule } from './Property-Media/property-media.module';
+import { NotificationModule } from './notification/notification.module';
+import { ApplicationModule } from './application/application.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -56,7 +61,15 @@ import { ComplaintModule } from './complaint/complaint.module';
     VisitsModule,
     BranchModule,
     PropertyCollectionsModule,
-    ComplaintModule
+    ComplaintModule,
+    PropertyListingModule,
+    PropertyMediaModule,
+    NotificationModule,
+    ApplicationModule,
+    NotificationsModule
+  
+
+
   ],
   controllers: [AppController],
   providers: [AppService],
