@@ -56,7 +56,7 @@ export class SignUpDto {
 
   @IsOptional()
   @IsString()
-  @RequiresDobIfClient()
+  // @RequiresDobIfClient()
   dateOfBirth?: string;
 
 

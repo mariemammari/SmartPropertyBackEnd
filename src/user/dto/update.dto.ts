@@ -1,7 +1,7 @@
 import { IsString, IsEmail, IsOptional, IsEnum, IsDateString, IsDate } from 'class-validator';
 import { UserRole, UserStatus } from '../schemas/user.schema';
 import { RequiresBranchIfManagerOrAccountant } from '../decorators/requires-branch.decorator';
-import { RequiresDobIfClient } from '../decorators/requires-dob-if-client.decorator';
+// import { RequiresDobIfClient } from '../decorators/requires-dob-if-client.decorator';
 import { Type } from 'class-transformer';
 
 export class UpdateUserDto {
@@ -60,7 +60,7 @@ export class UpdateUserDto {
 
     @IsOptional()
     @IsString()
-    @RequiresDobIfClient()
+    // @RequiresDobIfClient()
     dateOfBirth?: string;
 
 

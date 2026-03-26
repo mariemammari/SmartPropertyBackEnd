@@ -26,9 +26,9 @@ export class UserService {
     const actualRole = role || UserRole.CLIENT;
 
     // Validate dateOfBirth for CLIENT
-    if (actualRole === UserRole.CLIENT && !dateOfBirth) {
-      throw new BadRequestException('dateOfBirth is required for client role');
-    }
+    // if (actualRole === UserRole.CLIENT && !dateOfBirth) {
+    //   throw new BadRequestException('dateOfBirth is required for client role');
+    // }
 
     // Reject dateOfBirth for non-CLIENT roles
     if (actualRole !== UserRole.CLIENT && dateOfBirth) {
