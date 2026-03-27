@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Install') {
             steps {
-                sh '/usr/bin/npm install'
+                sh '/usr/bin/npm install --prefer-offline --timeout=60000'
             }
         }
 
