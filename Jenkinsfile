@@ -1,10 +1,15 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = 'smart-property-backend'
+        IMAGE_TAG  = 'latest'
+    }
+
     stages {
         stage('Install') {
             steps {
-                sh '/usr/bin/npm install --prefer-offline --timeout=60000'
+                sh '/usr/bin/npm install'
             }
         }
 
@@ -13,14 +18,20 @@ pipeline {
                 sh '/usr/bin/npm run test:cov'
             }
         }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
+            }
+        }
     }
 
     post {
         success {
-            echo 'Tests backend OK !'
+            echo 'Pipeline CI backend OK !'
         }
         failure {
-            echo 'Tests backend echoues !'
+            echo 'Pipeline CI backend echoue !'
         }
     }
 }
