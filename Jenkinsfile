@@ -4,13 +4,13 @@ pipeline {
     stages {
         stage('Install') {
             steps {
-                sh 'npm install'
+                sh '/usr/bin/npm install'
             }
         }
 
         stage('Tests unitaires') {
             steps {
-                sh 'npm run test:cov'
+                sh '/usr/bin/npm run test:cov'
             }
         }
     }
