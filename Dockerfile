@@ -22,16 +22,12 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Sécurité : utilisateur non-root
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 
-# Installer seulement les dépendances de production
-RUN npm ci --omit=dev
-
-# Donner les droits à l'utilisateur
 RUN chown -R appuser:appgroup /app
 
 USER appuser
