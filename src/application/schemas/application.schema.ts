@@ -30,6 +30,15 @@ export class Application {
   familyMembers: number;
 
   @Prop()
+  occupation: string;
+
+  @Prop()
+  monthlyIncome: number;
+
+  @Prop()
+  notes: string;
+
+  @Prop()
   documentUrl: string;
 
   @Prop({ default: 'PENDING', enum: ['PENDING', 'APPROVED', 'REJECTED'] })

@@ -35,5 +35,17 @@ export class CreateApplicationDto {
 
   @IsString()
   @IsOptional()
+  occupation?: string;
+
+  @IsNumber()
+  @IsOptional()
+  monthlyIncome?: number;
+
+  @IsString()
+  @IsOptional()
+  notes?: string;
+
+  @IsString()
+  @IsOptional()
   documentUrl?: string;
 }
