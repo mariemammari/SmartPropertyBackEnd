@@ -248,8 +248,44 @@ export class UsersController {
     });
     return {
       message: 'Staff users retrieved successfully',
-      count: sanitizedUsers.length,
       users: sanitizedUsers,
+    };
+  }
+
+  /**
+   * Get branch staff for current branch manager (agents and accountants)
+   */
+  @Get('branch/staff')
+  @UseGuards(JwtAuthGuard)
+  async getBranchStaff(@Request() req): Promise<any> {
+    const userId = req.user.userId || req.user._id || req.user.sub;
+
+    // Get the current user to verify they're a branch manager
+    const currentUser = await this.userService.findById(userId);
+    if (!currentUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (currentUser.role !== UserRole.BRANCH_MANAGER) {
+      throw new BadRequestException('Only branch managers can access this endpoint');
+    }
+
+    const branchId = currentUser.branchId;
+    if (!branchId) {
+      throw new BadRequestException('Branch manager has no branch assigned');
+    }
+
+    // Get all agents and accountants in this branch
+    const branchStaff = await this.userService.findUsersByBranch(branchId);
+    const sanitizedUsers = branchStaff.map(user => {
+      const { password, ...result } = user.toObject();
+      return result;
+    });
+
+    return {
+      message: 'Branch staff retrieved successfully',
+      branchId,
+      staff: sanitizedUsers,
     };
   }
 
@@ -270,7 +306,4 @@ export class UsersController {
       users: sanitizedUsers,
     };
   }
-
-
-
 }

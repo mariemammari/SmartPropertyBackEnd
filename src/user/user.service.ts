@@ -11,7 +11,7 @@ export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
 
   async create(signUpDto: SignUpDto): Promise<UserDocument> {
-    const { firstName, lastName, email, phone, dateOfBirth, password, role, branchId } = signUpDto;
+    const { fullName, firstName, lastName, email, phone, dateOfBirth, password, role, branchId } = signUpDto;
 
     console.log('Creating user with email:', email);
 
@@ -25,15 +25,7 @@ export class UserService {
     // Determine actual role (default to CLIENT if not specified)
     const actualRole = role || UserRole.CLIENT;
 
-    // Validate dateOfBirth for CLIENT
-    // if (actualRole === UserRole.CLIENT && !dateOfBirth) {
-    //   throw new BadRequestException('dateOfBirth is required for client role');
-    // }
-
-    // Reject dateOfBirth for non-CLIENT roles
-    if (actualRole !== UserRole.CLIENT && dateOfBirth) {
-      throw new BadRequestException('dateOfBirth is only allowed for client role');
-    }
+    // dateOfBirth is allowed for all roles
 
     // Validate branchId for BRANCH_MANAGER
     if (actualRole === UserRole.BRANCH_MANAGER && !branchId) {
@@ -43,12 +35,12 @@ export class UserService {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create full name
-    const fullName = `${firstName} ${lastName}`;
+    // Create full name - use provided fullName or combine firstName/lastName
+    const userFullName = fullName || `${firstName} ${lastName}`.trim();
 
     // Create user
     const userData: any = {
-      fullName,
+      fullName: userFullName,
       email,
       phone,
       password: hashedPassword,
@@ -61,13 +53,13 @@ export class UserService {
       photo: '',
     };
 
-    // Only add dateOfBirth for CLIENT
-    if (actualRole === UserRole.CLIENT && dateOfBirth) {
+    // Add dateOfBirth for any role if provided
+    if (dateOfBirth) {
       userData.dateOfBirth = new Date(dateOfBirth);
     }
 
-    // Only add branchId for BRANCH_MANAGER
-    if (actualRole === UserRole.BRANCH_MANAGER) {
+    // Add branchId for BRANCH_MANAGER, REAL_ESTATE_AGENT, and ACCOUNTANT roles
+    if (branchId && [UserRole.BRANCH_MANAGER, UserRole.REAL_ESTATE_AGENT, UserRole.ACCOUNTANT].includes(actualRole)) {
       userData.branchId = branchId;
     }
 
@@ -96,27 +88,25 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    const { role, branchId, dateOfBirth } = updateData;
+    const { role, branchId, dateOfBirth, password } = updateData;
+
+    // If changing password, hash it
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10);
+      console.log('Password updated and hashed for user:', id);
+    }
 
     // If currently branch_manager and changing to something else, clear branchId
     if (existingUser.role === UserRole.BRANCH_MANAGER && role && role !== UserRole.BRANCH_MANAGER) {
       updateData.branchId = undefined;
     }
 
-    // If changing TO branch_manager, require branchId
-    if (role === UserRole.BRANCH_MANAGER && !branchId) {
+    // If changing TO branch_manager (from a different role), require branchId
+    if (role === UserRole.BRANCH_MANAGER && existingUser.role !== UserRole.BRANCH_MANAGER && !branchId) {
       throw new BadRequestException('branchId is required when role is branch_manager');
     }
 
-    // If changing TO non-CLIENT, reject dateOfBirth
-    if (role && role !== UserRole.CLIENT && dateOfBirth) {
-      throw new BadRequestException('dateOfBirth is only allowed for client role');
-    }
-
-    // If currently CLIENT and changing to something else, clear dateOfBirth
-    if (existingUser.role === UserRole.CLIENT && role && role !== UserRole.CLIENT) {
-      updateData.dateOfBirth = undefined;
-    }
+    // dateOfBirth is allowed for all roles now
 
     const user = await this.userModel.findByIdAndUpdate(id, updateData, { new: true });
     if (!user) {
@@ -166,6 +156,21 @@ export class UserService {
    */
   async findAllClients(): Promise<UserDocument[]> {
     return this.userModel.find({ role: UserRole.CLIENT }).exec();
+  }
+
+  /**
+   * Find all staff users by branch (agents and accountants for a specific branch)
+   */
+  async findUsersByBranch(branchId: string): Promise<UserDocument[]> {
+    const staffRoles = [
+      UserRole.REAL_ESTATE_AGENT,
+      UserRole.ACCOUNTANT,
+    ];
+
+    return this.userModel.find({
+      branchId: branchId,
+      role: { $in: staffRoles }
+    }).exec();
   }
 
   /**

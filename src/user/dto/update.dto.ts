@@ -10,6 +10,14 @@ export class UpdateUserDto {
     fullName?: string;
 
     @IsOptional()
+    @IsString()
+    firstName?: string;
+
+    @IsOptional()
+    @IsString()
+    lastName?: string;
+
+    @IsOptional()
     @IsEmail()
     email?: string;
 
@@ -24,6 +32,10 @@ export class UpdateUserDto {
     @IsOptional()
     @IsString()
     city?: string;
+
+    @IsOptional()
+    @IsString()
+    state?: string;
 
     @IsOptional()
     @IsString()
