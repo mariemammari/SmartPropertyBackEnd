@@ -24,14 +24,28 @@ pipeline {
                 sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
             }
         }
+
+        stage('Load image dans Minikube') {
+            steps {
+                sh 'minikube image load $IMAGE_NAME:$IMAGE_TAG'
+            }
+        }
+
+        stage('Deploy sur Kubernetes') {
+            steps {
+                sh 'kubectl apply -f k8s/deployment.yaml'
+                sh 'kubectl apply -f k8s/service.yaml'
+                sh 'kubectl rollout status deployment/smart-property-backend'
+            }
+        }
     }
 
     post {
         success {
-            echo 'Pipeline CI backend OK !'
+            echo 'Pipeline CD backend OK !'
         }
         failure {
-            echo 'Pipeline CI backend echoue !'
+            echo 'Pipeline CD backend echoue !'
         }
     }
 }
