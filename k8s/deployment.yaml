@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smart-property-backend
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smart-property-backend
+  template:
+    metadata:
+      labels:
+        app: smart-property-backend
+    spec:
+      containers:
+        - name: smart-property-backend
+          image: smart-property-backend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
