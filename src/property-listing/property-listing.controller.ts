@@ -11,7 +11,7 @@ import {
 
 @Controller('property-listings')
 export class PropertyListingController {
-  constructor(private readonly listingService: PropertyListingService) {}
+  constructor(private readonly listingService: PropertyListingService) { }
 
   @Post()
   create(@Body() dto: CreatePropertyListingDto) {
@@ -36,6 +36,16 @@ export class PropertyListingController {
   @Get('property/:propertyId/active')
   findActiveListing(@Param('propertyId') propertyId: string) {
     return this.listingService.findActiveListing(propertyId);
+  }
+
+  @Get(':propertyId/reference')
+  getReferenceByPropertyId(@Param('propertyId') propertyId: string) {
+    return this.listingService.findReferenceByPropertyId(propertyId);
+  }
+
+  @Get(':propertyId/agent')
+  getAgentByPropertyId(@Param('propertyId') propertyId: string) {
+    return this.listingService.getAgentByPropertyId(propertyId);
   }
 
   @Get(':id')

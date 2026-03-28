@@ -150,6 +150,10 @@ export class CreatePropertyDto {
   @IsMongoId()
   @IsOptional()
   createdBy?: string; // agent — injected from JWT in service
+
+  @IsString()
+  @IsOptional()
+  branchId?: string; // branch ID — automatically set from agent's branch
 }
 
 export class UpdatePropertyDto {
@@ -162,6 +166,7 @@ export class UpdatePropertyDto {
   @IsEnum(PropertyCondition) @IsOptional() condition?: PropertyCondition;
 
   @IsString() @IsOptional() description?: string;
+  @IsString() @IsOptional() branchId?: string; // branch ID
   @IsNumber() @Min(0) @IsOptional() price?: number;
   @IsNumber() @Min(0) @IsOptional() monthlyCharges?: number;
   @IsBoolean() @IsOptional() isPriceNegotiable?: boolean;

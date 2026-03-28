@@ -1,19 +1,35 @@
-/* import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFiles } from '@nestjs/common';
+/* import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFiles, UseGuards, Request, NotFoundException } from '@nestjs/common';
 import { PropertyService } from './property.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 import { FilesInterceptor } from '@nestjs/platform-express/multer';
 import { memoryStorage } from 'multer';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UserService } from '../user/user.service';
 
 @Controller('properties')
 export class PropertyController {
-    constructor(private readonly propertyService: PropertyService) { }
-
-
-
+    constructor(
+        private readonly propertyService: PropertyService,
+        private readonly userService: UserService,
+    ) { }
 
     @Post()
-    create(@Body() createPropertyDto: CreatePropertyDto) {
+    @UseGuards(JwtAuthGuard)
+    async create(@Request() req, @Body() createPropertyDto: CreatePropertyDto) {
+        // Get authenticated agent's info
+        const agentId = req.user.userId || req.user._id || req.user.sub;
+        const agent = await this.userService.findById(agentId);
+        
+        if (!agent) {
+            throw new NotFoundException('Agent not found');
+        }
+
+        // Add agent's branchId to the property
+        if (agent.branchId) {
+            createPropertyDto.branchId = agent.branchId;
+        }
+
         return this.propertyService.create(createPropertyDto);
 
     }
@@ -154,6 +170,7 @@ export class PropertyController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
+    console.log('🔴 DELETE ENDPOINT CALLED for property:', id);
     return this.propertiesService.remove(id);
   }
 }
