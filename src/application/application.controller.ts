@@ -1,4 +1,39 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { ApplicationService } from './application.service';
+import { CreateApplicationDto } from './dto/create-application.dto';
+import { UpdateApplicationDto } from './dto/update-application.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
 @Controller('application')
-export class ApplicationController {}
+export class ApplicationController {
+  constructor(private readonly applicationService: ApplicationService) {}
+
+  @Post()
+  async createApplication(@Body() createDto: CreateApplicationDto) {
+    return this.applicationService.create(createDto);
+  }
+
+  @Post('upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    })
+  )
+  async uploadDocument(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('File is missing');
+    const url = await this.applicationService.uploadDocument(file);
+    return { url };
+  }
+
+  @Get('agent/:agentId')
+  async getAgentApplications(@Param('agentId') agentId: string) {
+    return this.applicationService.findAllByAgent(agentId);
+  }
+
+  @Patch(':id/status')
+  async updateStatus(@Param('id') id: string, @Body() updateDto: UpdateApplicationDto) {
+    return this.applicationService.updateStatus(id, updateDto);
+  }
+}
