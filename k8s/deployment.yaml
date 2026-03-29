@@ -22,3 +22,8 @@ spec:
           env:
             - name: NODE_ENV
               value: production
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: MONGODB_URI
