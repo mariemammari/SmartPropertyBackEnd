@@ -19,6 +19,7 @@ import { ApplicationModule } from './application/application.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AiModule } from './ai/ai.module';
 import { FinanceModule } from './finance/finance.module';
+import { NearbyModule } from './nearby/nearby.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { FinanceModule } from './finance/finance.module';
     ChatModule,
     AiModule,
     FinanceModule,
+    NearbyModule,
 
   ],
   controllers: [AppController],

@@ -65,6 +65,9 @@ export class Property {
   type: string;
 
   @Prop()
+  title: string;
+
+  @Prop()
   description: string;
 
   // ─── Status ──────────────────────────────────────────────────
