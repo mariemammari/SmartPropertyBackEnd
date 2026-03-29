@@ -63,7 +63,7 @@ export class CreatePropertyDto {
 import {
   IsString, IsEnum, IsOptional, IsNumber,
   IsBoolean, IsMongoId, IsDate, Min, Max,
-  ValidateNested, IsObject,
+  ValidateNested, IsObject, IsNotEmpty,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
@@ -85,6 +85,10 @@ export class CreatePropertyDto {
 
   @IsString()
   @IsOptional()
+  title?: string;
+
+  @IsString()
+  @IsOptional()
   description?: string;
 
   // ─── Pricing ─────────────────────────────────────────────────
@@ -100,6 +104,10 @@ export class CreatePropertyDto {
   @IsBoolean()
   @IsOptional()
   isPriceNegotiable?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  isPriceAIGenerated?: boolean;
 
   // ─── Surface & Rooms ─────────────────────────────────────────
   @IsNumber() @Min(0) @IsOptional() size?: number;
@@ -154,6 +162,11 @@ export class CreatePropertyDto {
   @IsString()
   @IsOptional()
   branchId?: string; // branch ID — automatically set from agent's branch
+
+  // ─── Custom Fields ───────────────────────────────────────────
+  @IsObject()
+  @IsOptional()
+  customFields?: Record<string, any>; // flexible key-value pairs
 }
 
 export class UpdatePropertyDto {
@@ -165,11 +178,13 @@ export class UpdatePropertyDto {
   status?: PropertyStatus;
   @IsEnum(PropertyCondition) @IsOptional() condition?: PropertyCondition;
 
+  @IsString() @IsOptional() title?: string;
   @IsString() @IsOptional() description?: string;
   @IsString() @IsOptional() branchId?: string; // branch ID
   @IsNumber() @Min(0) @IsOptional() price?: number;
   @IsNumber() @Min(0) @IsOptional() monthlyCharges?: number;
   @IsBoolean() @IsOptional() isPriceNegotiable?: boolean;
+  @IsBoolean() @IsOptional() isPriceAIGenerated?: boolean;
 
   @IsNumber() @Min(0) @IsOptional() size?: number;
   @IsNumber() @Min(0) @IsOptional() rooms?: number;
@@ -198,6 +213,11 @@ export class UpdatePropertyDto {
   @IsString() @IsOptional() postalCode?: string;
   @IsNumber() @IsOptional() lat?: number;
   @IsNumber() @IsOptional() lng?: number;
+
+  // ─── Custom Fields ───────────────────────────────────────────
+  @IsObject()
+  @IsOptional()
+  customFields?: Record<string, any>; // flexible key-value pairs
 }
 
 export class PropertyFilterDto {
