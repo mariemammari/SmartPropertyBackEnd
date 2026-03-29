@@ -239,6 +239,32 @@ export class UserService {
   }
 
   /**
+   * Update user signature URL (signature already uploaded to Cloudinary by client)
+   */
+  async updateSignatureUrl(userId: string, signatureUrl: string): Promise<string> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (!signatureUrl || typeof signatureUrl !== 'string') {
+      throw new BadRequestException('Invalid signature URL');
+    }
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      userId,
+      { signature: signatureUrl },
+      { new: true },
+    );
+
+    if (!updatedUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    return signatureUrl;
+  }
+
+  /**
    * Upload photo to Cloudinary and save URL to user profile (legacy method)
    */
   async uploadPhoto(
@@ -265,6 +291,35 @@ export class UserService {
     }
 
     return base64Photo;
+  }
+
+  /**
+   * Upload signature to Cloudinary and save URL to user profile
+   */
+  async uploadSignature(
+    userId: string,
+    fileBuffer: Buffer,
+    mimetype: string,
+  ): Promise<string> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Fallback: Store as base64 in MongoDB for development/testing
+    const base64Signature = `data:${mimetype};base64,${fileBuffer.toString('base64')}`;
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      userId,
+      { signature: base64Signature },
+      { new: true },
+    );
+
+    if (!updatedUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    return base64Signature;
   }
 
 }

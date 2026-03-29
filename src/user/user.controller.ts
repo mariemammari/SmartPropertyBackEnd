@@ -109,6 +109,33 @@ export class UsersController {
   }
 
   /**
+   * Upload signature
+   */
+  @Post('profile/signature')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('signature', { storage: memoryStorage() }))
+  async uploadSignature(
+    @Request() req,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<any> {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    const userId = req.user.userId || req.user._id || req.user.sub;
+    const signatureUrl = await this.userService.uploadSignature(
+      userId,
+      file.buffer,
+      file.mimetype,
+    );
+
+    return {
+      message: 'Signature uploaded successfully',
+      signatureUrl,
+    };
+  }
+
+  /**
    * Save photo URL (for client-side Cloudinary uploads)
    */
   @Post('profile/photo-url')
@@ -130,6 +157,31 @@ export class UsersController {
     return {
       message: 'Photo URL saved successfully',
       photoUrl,
+    };
+  }
+
+  /**
+   * Save signature URL (for client-side Cloudinary uploads)
+   */
+  @Post('profile/signature-url')
+  @UseGuards(JwtAuthGuard)
+  async saveSignatureUrl(
+    @Request() req,
+    @Body() body: { signatureUrl: string },
+  ): Promise<any> {
+    if (!body.signatureUrl) {
+      throw new BadRequestException('signatureUrl is required');
+    }
+
+    const userId = req.user.userId || req.user._id || req.user.sub;
+    const signatureUrl = await this.userService.updateSignatureUrl(
+      userId,
+      body.signatureUrl,
+    );
+
+    return {
+      message: 'Signature URL saved successfully',
+      signatureUrl,
     };
   }
 

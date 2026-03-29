@@ -28,17 +28,20 @@ export class FinanceController {
   }
 
   @Get('invoices/:id')
-  findOne(@Param('id') id: string) {
-    return this.financeService.findOne(id);
+  findOne(@Param('id') id: string, @Request() req) {
+    const accountantId = req.user?.id || req.user?._id;
+    return this.financeService.findOne(id, accountantId);
   }
 
   @Put('invoices/:id')
-  update(@Param('id') id: string, @Body() updateData: any) {
-    return this.financeService.updateInvoice(id, updateData);
+  update(@Param('id') id: string, @Body() updateData: any, @Request() req) {
+    const accountantId = req.user?.id || req.user?._id;
+    return this.financeService.updateInvoice(id, updateData, accountantId);
   }
 
   @Delete('invoices/:id')
-  remove(@Param('id') id: string) {
-    return this.financeService.deleteInvoice(id);
+  remove(@Param('id') id: string, @Request() req) {
+    const accountantId = req.user?.id || req.user?._id;
+    return this.financeService.deleteInvoice(id, accountantId);
   }
 }
