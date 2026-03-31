@@ -19,9 +19,10 @@ import { ApplicationModule } from './application/application.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AiModule } from './ai/ai.module';
 import { FinanceModule } from './finance/finance.module';
-
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 @Module({
   imports: [
+ PrometheusModule.register(),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
