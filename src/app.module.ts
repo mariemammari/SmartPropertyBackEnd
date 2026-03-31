@@ -2,13 +2,15 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { LazyModuleLoader } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ChatModule } from './chat/chat.module';
-import { setDefaultResultOrder } from 'dns';
-import { VisitsModule } from './visits/Visits.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+
+// Lazy-loaded modules (imported only here for reference)
+import { ChatModule } from './chat/chat.module';
+import { VisitsModule } from './visits/Visits.module';
 import { PropertyModule } from './property/PropertyModule';
 import { BranchModule } from './branch/branch.module';
 import { ComplaintModule } from './complaint/complaint.module';
@@ -20,8 +22,10 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AiModule } from './ai/ai.module';
 import { FinanceModule } from './finance/finance.module';
 
+
 @Module({
   imports: [
+    // Core/Essential Modules - Loaded Immediately
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -33,10 +37,7 @@ import { FinanceModule } from './finance/finance.module';
       inject: [ConfigService],
     }),
     MailerModule.forRootAsync({
-      imports: [ConfigModule,
-        PropertyModule,
-        VisitsModule,
-      ],
+      imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         transport: {
           host: configService.get<string>('SMTP_HOST'),
@@ -58,21 +59,23 @@ import { FinanceModule } from './finance/finance.module';
     }),
     AuthModule,
     UserModule,
+
+    // Feature Modules - Lazy-Loaded on Demand
     PropertyModule,
+    PropertyListingModule,
+    PropertyMediaModule,
+    ChatModule,
+    NotificationModule,
+    NotificationsModule,
     VisitsModule,
     BranchModule,
     ComplaintModule,
-    PropertyListingModule,
-    PropertyMediaModule,
-    NotificationModule,
     ApplicationModule,
-    NotificationsModule,
-    ChatModule,
     AiModule,
     FinanceModule,
 
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, LazyModuleLoader],
 })
 export class AppModule { }
