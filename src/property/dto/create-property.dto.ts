@@ -65,7 +65,7 @@ import {
   IsBoolean, IsMongoId, IsDate, Min, Max,
   ValidateNested, IsObject, IsNotEmpty,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import {
   TransactionType, PropertyType, PropertySubType,
   PropertyCondition, PropertyStatus,
@@ -237,10 +237,10 @@ export class PropertyFilterDto {
   @IsNumber() @Min(0) @IsOptional() @Type(() => Number) bedrooms?: number;
   @IsNumber() @Min(0) @IsOptional() @Type(() => Number) bathrooms?: number;
 
-  @IsBoolean() @IsOptional() hasParking?: boolean;
-  @IsBoolean() @IsOptional() hasElevator?: boolean;
-  @IsBoolean() @IsOptional() hasPool?: boolean;
-  @IsBoolean() @IsOptional() hasAirConditioning?: boolean;
+  @IsBoolean() @IsOptional() @Transform(({ value }) => value === true || value === 'true') hasParking?: boolean;
+  @IsBoolean() @IsOptional() @Transform(({ value }) => value === true || value === 'true') hasElevator?: boolean;
+  @IsBoolean() @IsOptional() @Transform(({ value }) => value === true || value === 'true') hasPool?: boolean;
+  @IsBoolean() @IsOptional() @Transform(({ value }) => value === true || value === 'true') hasAirConditioning?: boolean;
 
   @IsNumber() @IsOptional() @Type(() => Number) page?: number;
   @IsNumber() @IsOptional() @Type(() => Number) limit?: number;

@@ -1,30 +1,27 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as dns from 'dns';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
+import { v2 as cloudinary } from 'cloudinary';
 
-// Load environment variables FIRST
+// Load environment variables once
 dotenv.config();
 
-import { v2 as cloudinary } from 'cloudinary';
+// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-dotenv.config();
-
+// Set DNS servers for improved DNS resolution performance
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 async function bootstrap() {
-  dns.setServers(['8.8.8.8', '1.1.1.1']);
-
   const app = await NestFactory.create(AppModule);
-  dns.setServers(['8.8.8.8', '1.1.1.1']);
 
   // Increase request body limit to 50MB for photo uploads
   app.use(express.json({ limit: '50mb' }));
@@ -32,13 +29,16 @@ async function bootstrap() {
 
   // Enable CORS for frontend communication
   app.enableCors({
-    origin: [process.env.FRONTEND_URL || 'http://localhost:5173', 'http://localhost:5174'],
+    origin: [
+      process.env.FRONTEND_URL || 'http://localhost:5173',
+      'http://localhost:5174',
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-
   });
-  // Enable validation pipes
+
+  // Enable global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -49,20 +49,16 @@ async function bootstrap() {
       },
     }),
   );
-  //avec mongo local 
-  {/*app.enableCors({
-    origin: 'http://localhost:5174', //  frontend Vite
-  });*/}
 
-
-  //now avec atlas 
-  app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    credentials: true,
-  });
-
-  app.useGlobalPipes(new ValidationPipe({ transform: true }))
+  // Setup Swagger documentation
+  const config = new DocumentBuilder()
+    .setTitle('Smart Property API')
+    .setDescription('API documentation for Smart Property Backend')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);

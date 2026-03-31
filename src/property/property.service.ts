@@ -42,6 +42,8 @@ export class PropertyService {
       ownerId, createdBy,
     } = filters;
 
+    console.log('🔍 [PropertyService.findAll] Raw filters received:', filters);
+
     const query: Record<string, any> = {};
 
     // Enum filters
@@ -55,23 +57,23 @@ export class PropertyService {
     if (city) query.city = { $regex: city, $options: 'i' };
     if (state) query.state = { $regex: state, $options: 'i' };
 
-    // Range filters
+    // Range filters - convert to numbers for proper numeric comparison
     if (minPrice !== undefined || maxPrice !== undefined) {
       query.price = {};
-      if (minPrice !== undefined) query.price.$gte = minPrice;
-      if (maxPrice !== undefined) query.price.$lte = maxPrice;
+      if (minPrice !== undefined) query.price.$gte = Number(minPrice);
+      if (maxPrice !== undefined) query.price.$lte = Number(maxPrice);
     }
     if (minSize !== undefined || maxSize !== undefined) {
       query.size = {};
-      if (minSize !== undefined) query.size.$gte = minSize;
-      if (maxSize !== undefined) query.size.$lte = maxSize;
+      if (minSize !== undefined) query.size.$gte = Number(minSize);
+      if (maxSize !== undefined) query.size.$lte = Number(maxSize);
     }
 
-    // Exact matches
-    if (bedrooms !== undefined) query.bedrooms = bedrooms;
-    if (bathrooms !== undefined) query.bathrooms = bathrooms;
+    // Exact matches - convert to numbers for proper MongoDB comparison
+    if (bedrooms !== undefined) query.bedrooms = Number(bedrooms);
+    if (bathrooms !== undefined) query.bathrooms = Number(bathrooms);
 
-    // Boolean amenities
+    // Boolean amenities - now properly typed as boolean from DTO transformation
     if (hasParking) query.hasParking = true;
     if (hasElevator) query.hasElevator = true;
     if (hasPool) query.hasPool = true;
@@ -81,8 +83,13 @@ export class PropertyService {
     if (ownerId) query.ownerId = new Types.ObjectId(ownerId);
     if (createdBy) query.createdBy = new Types.ObjectId(createdBy);
 
+    console.log('📋 [PropertyService.findAll] Built MongoDB query:', JSON.stringify(query, null, 2));
+    console.log('📄 [PropertyService.findAll] Page:', page, 'Limit:', limit);
+
     const skip = (page - 1) * limit;
     const total = await this.propertyModel.countDocuments(query);
+    console.log('📊 [PropertyService.findAll] Total matching documents:', total);
+
     const data = await this.propertyModel
       .find(query)
       .populate('ownerId', 'name email phone')
@@ -91,6 +98,8 @@ export class PropertyService {
       .skip(skip)
       .limit(limit)
       .exec();
+
+    console.log('✅ [PropertyService.findAll] Returned', data.length, 'properties');
 
     return { data, total, page, pages: Math.ceil(total / limit) };
   }
