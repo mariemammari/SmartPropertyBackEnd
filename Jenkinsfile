@@ -15,14 +15,21 @@ pipeline {
                 sh '/usr/bin/npm run test:cov'
             }
         }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '/opt/sonar-scanner/bin/sonar-scanner'
+                }
+            }
+        }
         stage('Build Docker Image') {
-    steps {
-        sh '''
-            eval $(minikube docker-env)
-            docker build --network=host -t $IMAGE_NAME:$IMAGE_TAG .
-        '''
-    }
-}
+            steps {
+                sh '''
+                    eval $(minikube docker-env)
+                    docker build --network=host -t $IMAGE_NAME:$IMAGE_TAG .
+                '''
+            }
+        }
         stage('Load image dans Minikube') {
             steps {
                 echo "Image buildée directement dans Minikube, skip."
