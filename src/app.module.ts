@@ -23,6 +23,7 @@ import { AiModule } from './ai/ai.module';
 import { FinanceModule } from './finance/finance.module';
 import { NearbyModule } from './nearby/nearby.module';
 
+
 @Module({
   imports: [
     // Core/Essential Modules - Loaded Immediately
@@ -74,6 +75,7 @@ import { NearbyModule } from './nearby/nearby.module';
     AiModule,
     FinanceModule,
     NearbyModule,
+
   ],
   controllers: [AppController],
   providers: [AppService, LazyModuleLoader],
