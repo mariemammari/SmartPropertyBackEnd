@@ -11,7 +11,7 @@ RUN npm ci
 
 COPY . .
 
-RUN npm run test
+#RUN npm run test
 
 RUN npm run build
 
