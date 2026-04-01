@@ -17,18 +17,18 @@ export class PropertyListingService {
   constructor(
     @InjectModel(PropertyListing.name)
     private listingModel: Model<PropertyListingDocument>,
-  ) {}
+  ) { }
 
   // ── Create ────────────────────────────────────────────────────────────────
   async create(dto: CreatePropertyListingDto): Promise<PropertyListing> {
     const data: any = {
       ...dto,
       propertyId: new Types.ObjectId(dto.propertyId),
-      ownerId:    new Types.ObjectId(dto.ownerId),
-      createdBy:  new Types.ObjectId(dto.createdBy),
-      agentId:    dto.agentId  ? new Types.ObjectId(dto.agentId)  : undefined,
-      branchId:   dto.branchId ? new Types.ObjectId(dto.branchId) : undefined,
-      status:     dto.status ?? ListingStatus.DRAFT,
+      ownerId: new Types.ObjectId(dto.ownerId),
+      createdBy: new Types.ObjectId(dto.createdBy),
+      agentId: dto.agentId ? new Types.ObjectId(dto.agentId) : undefined,
+      branchId: dto.branchId ? new Types.ObjectId(dto.branchId) : undefined,
+      status: dto.status ?? ListingStatus.DRAFT,
     };
     return new this.listingModel(data).save();
   }
@@ -44,17 +44,17 @@ export class PropertyListingService {
     const query: Record<string, any> = {};
 
     if (propertyId) query.propertyId = new Types.ObjectId(propertyId);
-    if (ownerId)    query.ownerId    = new Types.ObjectId(ownerId);
-    if (agentId)    query.agentId    = new Types.ObjectId(agentId);
-    if (status)     query.status     = status;
+    if (ownerId) query.ownerId = new Types.ObjectId(ownerId);
+    if (agentId) query.agentId = new Types.ObjectId(agentId);
+    if (status) query.status = status;
 
-    const skip  = (page - 1) * limit;
+    const skip = (page - 1) * limit;
     const total = await this.listingModel.countDocuments(query);
-    const data  = await this.listingModel
+    const data = await this.listingModel
       .find(query)
       .populate('propertyId', 'propertyType propertySubType city state size bedrooms bathrooms')
-      .populate('ownerId',    'name email phone')
-      .populate('agentId',    'name email')
+      .populate('ownerId', 'name email phone')
+      .populate('agentId', 'name email')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -68,8 +68,8 @@ export class PropertyListingService {
     const listing = await this.listingModel
       .findById(id)
       .populate('propertyId')
-      .populate('ownerId',   'name email phone')
-      .populate('agentId',   'name email')
+      .populate('ownerId', 'name email phone')
+      .populate('agentId', 'name email')
       .populate('createdBy', 'name email')
       .exec();
     if (!listing) throw new NotFoundException(`Listing ${id} not found`);
@@ -80,31 +80,61 @@ export class PropertyListingService {
   async findByProperty(propertyId: string): Promise<PropertyListing[]> {
     return this.listingModel
       .find({ propertyId: new Types.ObjectId(propertyId) })
+      .populate('agentId', 'name email')
+      .populate('createdBy', 'name email')
       .sort({ createdAt: -1 })
       .exec();
   }
 
   // ── Find Active Listing for a Property ───────────────────────────────────
- async findActiveListing(propertyId: string): Promise<PropertyListing | null> {
-  return this.listingModel
-    .findOne({
-      propertyId: new Types.ObjectId(propertyId),
-      status: { $in: [
-        ListingStatus.ACTIVE,
-        ListingStatus.APPROVED,
-        ListingStatus.DRAFT,        // est ce vraiment on a "approving"
-        ListingStatus.PENDING_REVIEW // 
-      ]},
-    })
-    .populate('propertyId')
-    .exec();
-}
+  async findActiveListing(propertyId: string): Promise<PropertyListing | null> {
+    return this.listingModel
+      .findOne({
+        propertyId: new Types.ObjectId(propertyId),
+        status: {
+          $in: [
+            ListingStatus.ACTIVE,
+            ListingStatus.APPROVED,
+            ListingStatus.DRAFT,        // est ce vraiment on a "approving"
+            ListingStatus.PENDING_REVIEW // 
+          ]
+        },
+      })
+      .populate('agentId', 'name email')
+      .populate('createdBy', 'name email')
+      .populate('propertyId')
+      .exec();
+  }
+
+  // ── Find Reference Number by Property ID ────────────────────────────────
+  async findReferenceByPropertyId(propertyId: string): Promise<{ referenceNumber: string } | null> {
+    const listing = await this.listingModel
+      .findOne({ propertyId: new Types.ObjectId(propertyId) })
+      .select('referenceNumber')
+      .exec();
+
+    if (!listing) return null;
+    return { referenceNumber: listing.referenceNumber };
+  }
+
+  // ── Get Agent Info by Property ID ───────────────────────────────────────
+  async getAgentByPropertyId(propertyId: string): Promise<any> {
+    const listing = await this.listingModel
+      .findOne({ propertyId: new Types.ObjectId(propertyId) })
+      .select('agentId createdBy')
+      .populate('agentId', 'name email phone')
+      .populate('createdBy', 'name email phone')
+      .exec();
+
+    if (!listing) return null;
+    return { agentId: listing.agentId, createdBy: listing.createdBy };
+  }
 
   // ── Update ────────────────────────────────────────────────────────────────
   async update(id: string, dto: UpdatePropertyListingDto): Promise<PropertyListing> {
     const update: any = { ...dto };
 
-    if (dto.agentId)  update.agentId  = new Types.ObjectId(dto.agentId);
+    if (dto.agentId) update.agentId = new Types.ObjectId(dto.agentId);
     if (dto.branchId) update.branchId = new Types.ObjectId(dto.branchId);
 
     // Auto-set publishedAt when status goes ACTIVE

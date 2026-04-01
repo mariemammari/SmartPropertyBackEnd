@@ -109,6 +109,33 @@ export class UsersController {
   }
 
   /**
+   * Upload signature
+   */
+  @Post('profile/signature')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('signature', { storage: memoryStorage() }))
+  async uploadSignature(
+    @Request() req,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<any> {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    const userId = req.user.userId || req.user._id || req.user.sub;
+    const signatureUrl = await this.userService.uploadSignature(
+      userId,
+      file.buffer,
+      file.mimetype,
+    );
+
+    return {
+      message: 'Signature uploaded successfully',
+      signatureUrl,
+    };
+  }
+
+  /**
    * Save photo URL (for client-side Cloudinary uploads)
    */
   @Post('profile/photo-url')
@@ -130,6 +157,31 @@ export class UsersController {
     return {
       message: 'Photo URL saved successfully',
       photoUrl,
+    };
+  }
+
+  /**
+   * Save signature URL (for client-side Cloudinary uploads)
+   */
+  @Post('profile/signature-url')
+  @UseGuards(JwtAuthGuard)
+  async saveSignatureUrl(
+    @Request() req,
+    @Body() body: { signatureUrl: string },
+  ): Promise<any> {
+    if (!body.signatureUrl) {
+      throw new BadRequestException('signatureUrl is required');
+    }
+
+    const userId = req.user.userId || req.user._id || req.user.sub;
+    const signatureUrl = await this.userService.updateSignatureUrl(
+      userId,
+      body.signatureUrl,
+    );
+
+    return {
+      message: 'Signature URL saved successfully',
+      signatureUrl,
     };
   }
 
@@ -248,8 +300,44 @@ export class UsersController {
     });
     return {
       message: 'Staff users retrieved successfully',
-      count: sanitizedUsers.length,
       users: sanitizedUsers,
+    };
+  }
+
+  /**
+   * Get branch staff for current branch manager (agents and accountants)
+   */
+  @Get('branch/staff')
+  @UseGuards(JwtAuthGuard)
+  async getBranchStaff(@Request() req): Promise<any> {
+    const userId = req.user.userId || req.user._id || req.user.sub;
+
+    // Get the current user to verify they're a branch manager
+    const currentUser = await this.userService.findById(userId);
+    if (!currentUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (currentUser.role !== UserRole.BRANCH_MANAGER) {
+      throw new BadRequestException('Only branch managers can access this endpoint');
+    }
+
+    const branchId = currentUser.branchId;
+    if (!branchId) {
+      throw new BadRequestException('Branch manager has no branch assigned');
+    }
+
+    // Get all agents and accountants in this branch
+    const branchStaff = await this.userService.findUsersByBranch(branchId);
+    const sanitizedUsers = branchStaff.map(user => {
+      const { password, ...result } = user.toObject();
+      return result;
+    });
+
+    return {
+      message: 'Branch staff retrieved successfully',
+      branchId,
+      staff: sanitizedUsers,
     };
   }
 
@@ -270,7 +358,4 @@ export class UsersController {
       users: sanitizedUsers,
     };
   }
-
-
-
 }

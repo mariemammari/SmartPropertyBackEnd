@@ -13,20 +13,24 @@ import { RequiresBranchIfManagerOrAccountant } from '../decorators/requires-bran
 import { RequiresDobIfClient } from '../decorators/requires-dob-if-client.decorator';
 
 export class SignUpDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  firstName: string;
+  fullName?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  lastName: string;
+  firstName?: string;
+
+  @IsOptional()
+  @IsString()
+  lastName?: string;
 
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
 
- @ValidateIf(o => o.role === UserRole.CLIENT)
+  @ValidateIf(o => o.role === UserRole.CLIENT)
   @IsNotEmpty()
   @IsString()
   city: string;
@@ -66,5 +70,9 @@ export class SignUpDto {
   @IsString()
   @RequiresBranchIfManagerOrAccountant()
   branchId?: string;
+
+  @IsOptional()
+  @IsString()
+  photo?: string;
 }
 

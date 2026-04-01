@@ -2,13 +2,13 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { LazyModuleLoader } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ChatModule } from './chat/chat.module';
-import { setDefaultResultOrder } from 'dns';
-import { VisitsModule } from './visits/Visits.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { ChatModule } from './chat/chat.module';
+import { VisitsModule } from './visits/Visits.module';
 import { PropertyModule } from './property/PropertyModule';
 import { BranchModule } from './branch/branch.module';
 import { ComplaintModule } from './complaint/complaint.module';
@@ -20,12 +20,11 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AiModule } from './ai/ai.module';
 import { FinanceModule } from './finance/finance.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+
 @Module({
   imports: [
- PrometheusModule.register(),
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    PrometheusModule.register(),
+    ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -34,10 +33,7 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
       inject: [ConfigService],
     }),
     MailerModule.forRootAsync({
-      imports: [ConfigModule,
-        PropertyModule,
-        VisitsModule,
-      ],
+      imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         transport: {
           host: configService.get<string>('SMTP_HOST'),
@@ -47,9 +43,7 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
             user: configService.get<string>('SMTP_USER'),
             pass: configService.get<string>('SMTP_PASSWORD'),
           },
-          tls: {
-            rejectUnauthorized: false,
-          },
+          tls: { rejectUnauthorized: false },
         },
         defaults: {
           from: `"SmartProperty" <${configService.get<string>('EMAIL_FROM') || 'noreply@smartproperty.com'}>`,
@@ -60,20 +54,19 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     AuthModule,
     UserModule,
     PropertyModule,
+    PropertyListingModule,
+    PropertyMediaModule,
+    ChatModule,
+    NotificationModule,
+    NotificationsModule,
     VisitsModule,
     BranchModule,
     ComplaintModule,
-    PropertyListingModule,
-    PropertyMediaModule,
-    NotificationModule,
     ApplicationModule,
-    NotificationsModule,
-    ChatModule,
     AiModule,
     FinanceModule,
-
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, LazyModuleLoader],
 })
 export class AppModule { }

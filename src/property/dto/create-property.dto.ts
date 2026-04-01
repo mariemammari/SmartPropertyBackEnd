@@ -63,9 +63,9 @@ export class CreatePropertyDto {
 import {
   IsString, IsEnum, IsOptional, IsNumber,
   IsBoolean, IsMongoId, IsDate, Min, Max,
-  ValidateNested, IsObject,
+  ValidateNested, IsObject, IsNotEmpty,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import {
   TransactionType, PropertyType, PropertySubType,
   PropertyCondition, PropertyStatus,
@@ -85,6 +85,10 @@ export class CreatePropertyDto {
 
   @IsString()
   @IsOptional()
+  title?: string;
+
+  @IsString()
+  @IsOptional()
   description?: string;
 
   // ─── Pricing ─────────────────────────────────────────────────
@@ -100,6 +104,10 @@ export class CreatePropertyDto {
   @IsBoolean()
   @IsOptional()
   isPriceNegotiable?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  isPriceAIGenerated?: boolean;
 
   // ─── Surface & Rooms ─────────────────────────────────────────
   @IsNumber() @Min(0) @IsOptional() size?: number;
@@ -150,6 +158,15 @@ export class CreatePropertyDto {
   @IsMongoId()
   @IsOptional()
   createdBy?: string; // agent — injected from JWT in service
+
+  @IsString()
+  @IsOptional()
+  branchId?: string; // branch ID — automatically set from agent's branch
+
+  // ─── Custom Fields ───────────────────────────────────────────
+  @IsObject()
+  @IsOptional()
+  customFields?: Record<string, any>; // flexible key-value pairs
 }
 
 export class UpdatePropertyDto {
@@ -161,10 +178,13 @@ export class UpdatePropertyDto {
   status?: PropertyStatus;
   @IsEnum(PropertyCondition) @IsOptional() condition?: PropertyCondition;
 
+  @IsString() @IsOptional() title?: string;
   @IsString() @IsOptional() description?: string;
+  @IsString() @IsOptional() branchId?: string; // branch ID
   @IsNumber() @Min(0) @IsOptional() price?: number;
   @IsNumber() @Min(0) @IsOptional() monthlyCharges?: number;
   @IsBoolean() @IsOptional() isPriceNegotiable?: boolean;
+  @IsBoolean() @IsOptional() isPriceAIGenerated?: boolean;
 
   @IsNumber() @Min(0) @IsOptional() size?: number;
   @IsNumber() @Min(0) @IsOptional() rooms?: number;
@@ -193,6 +213,11 @@ export class UpdatePropertyDto {
   @IsString() @IsOptional() postalCode?: string;
   @IsNumber() @IsOptional() lat?: number;
   @IsNumber() @IsOptional() lng?: number;
+
+  // ─── Custom Fields ───────────────────────────────────────────
+  @IsObject()
+  @IsOptional()
+  customFields?: Record<string, any>; // flexible key-value pairs
 }
 
 export class PropertyFilterDto {
@@ -212,10 +237,10 @@ export class PropertyFilterDto {
   @IsNumber() @Min(0) @IsOptional() @Type(() => Number) bedrooms?: number;
   @IsNumber() @Min(0) @IsOptional() @Type(() => Number) bathrooms?: number;
 
-  @IsBoolean() @IsOptional() hasParking?: boolean;
-  @IsBoolean() @IsOptional() hasElevator?: boolean;
-  @IsBoolean() @IsOptional() hasPool?: boolean;
-  @IsBoolean() @IsOptional() hasAirConditioning?: boolean;
+  @IsBoolean() @IsOptional() @Transform(({ value }) => value === true || value === 'true') hasParking?: boolean;
+  @IsBoolean() @IsOptional() @Transform(({ value }) => value === true || value === 'true') hasElevator?: boolean;
+  @IsBoolean() @IsOptional() @Transform(({ value }) => value === true || value === 'true') hasPool?: boolean;
+  @IsBoolean() @IsOptional() @Transform(({ value }) => value === true || value === 'true') hasAirConditioning?: boolean;
 
   @IsNumber() @IsOptional() @Type(() => Number) page?: number;
   @IsNumber() @IsOptional() @Type(() => Number) limit?: number;

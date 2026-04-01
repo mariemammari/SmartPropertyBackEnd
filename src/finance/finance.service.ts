@@ -25,29 +25,47 @@ export class FinanceService {
 
   async findAll(accountantId?: string): Promise<InvoiceDocument[]> {
     if (accountantId) {
-      // Récupérer le branchId du comptable
-      const accountant = await this.userModel.findById(accountantId);
-      if (!accountant) throw new NotFoundException('Accountant not found');
-      
-      // Filtrer par branchId du comptable
-      return this.invoiceModel.find({ branchId: accountant.branchId }).populate('accountantId', 'fullName email').exec();
+      // Filtrer directement par accountantId pour une séparation complète
+      return this.invoiceModel.find({ accountantId }).populate('accountantId', 'fullName email').exec();
     }
     return this.invoiceModel.find().populate('accountantId', 'fullName email').exec();
   }
 
-  async findOne(id: string): Promise<InvoiceDocument> {
+  async findOne(id: string, accountantId?: string): Promise<InvoiceDocument> {
     const invoice = await this.invoiceModel.findById(id).populate('accountantId', 'fullName email').exec();
     if (!invoice) throw new NotFoundException('Invoice not found');
+    
+    // Si un accountantId est fourni, vérifier que la facture appartient à ce comptable
+    if (accountantId && invoice.accountantId.toString() !== accountantId) {
+      throw new NotFoundException('Invoice not found or access denied');
+    }
+    
     return invoice;
   }
 
-  async updateInvoice(id: string, updateData: any): Promise<InvoiceDocument> {
-    const invoice = await this.invoiceModel.findByIdAndUpdate(id, updateData, { new: true });
+  async updateInvoice(id: string, updateData: any, accountantId?: string): Promise<InvoiceDocument> {
+    // D'abord vérifier que la facture existe et appartient au comptable
+    const invoice = await this.invoiceModel.findById(id);
     if (!invoice) throw new NotFoundException('Invoice not found');
-    return invoice;
+    
+    if (accountantId && invoice.accountantId.toString() !== accountantId) {
+      throw new NotFoundException('Invoice not found or access denied');
+    }
+    
+    const updatedInvoice = await this.invoiceModel.findByIdAndUpdate(id, updateData, { new: true });
+    if (!updatedInvoice) throw new NotFoundException('Invoice not found');
+    return updatedInvoice;
   }
 
-  async deleteInvoice(id: string): Promise<void> {
+  async deleteInvoice(id: string, accountantId?: string): Promise<void> {
+    // D'abord vérifier que la facture existe et appartient au comptable
+    const invoice = await this.invoiceModel.findById(id);
+    if (!invoice) throw new NotFoundException('Invoice not found');
+    
+    if (accountantId && invoice.accountantId.toString() !== accountantId) {
+      throw new NotFoundException('Invoice not found or access denied');
+    }
+    
     const result = await this.invoiceModel.findByIdAndDelete(id);
     if (!result) throw new NotFoundException('Invoice not found');
   }
@@ -55,12 +73,8 @@ export class FinanceService {
   async getStats(accountantId?: string) {
     let invoices;
     if (accountantId) {
-      // Récupérer le branchId du comptable
-      const accountant = await this.userModel.findById(accountantId);
-      if (!accountant) throw new NotFoundException('Accountant not found');
-      
-      // Filtrer par branchId du comptable
-      invoices = await this.invoiceModel.find({ branchId: accountant.branchId }).exec();
+      // Filtrer directement par accountantId pour une séparation complète
+      invoices = await this.invoiceModel.find({ accountantId }).exec();
     } else {
       invoices = await this.invoiceModel.find().exec();
     }
