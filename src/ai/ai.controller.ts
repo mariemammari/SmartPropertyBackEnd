@@ -34,4 +34,25 @@ export class AiController {
       throw new BadRequestException(error.message);
     }
   }
+
+  @Post('navigate')
+  async navigate(
+    @Body() body: { transcript: string; role?: string; currentPath?: string },
+  ) {
+    const { transcript, role, currentPath } = body;
+    if (!transcript) {
+      throw new BadRequestException('Transcript is required');
+    }
+
+    try {
+      const result = await this.aiService.interpretNavigationCommand(
+        transcript,
+        role || 'client',
+        currentPath || '/',
+      );
+      return result;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
 }
