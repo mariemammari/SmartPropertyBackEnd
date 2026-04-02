@@ -21,7 +21,7 @@ import { ApplicationModule } from './application/application.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AiModule } from './ai/ai.module';
 import { FinanceModule } from './finance/finance.module';
-
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -73,6 +73,7 @@ import { FinanceModule } from './finance/finance.module';
     ApplicationModule,
     AiModule,
     FinanceModule,
+    MailModule,
 
   ],
   controllers: [AppController],
