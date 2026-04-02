@@ -32,6 +32,24 @@ export class ApplicationController {
     return this.applicationService.findAllByAgent(agentId);
   }
 
+  @Get('client/:clientId')
+  async getClientApplications(@Param('clientId') clientId: string) {
+    return this.applicationService.findAllByClient(clientId);
+  }
+
+  @Get('client/:clientId/property/:propertyId')
+  async getClientLatestApplicationForProperty(
+    @Param('clientId') clientId: string,
+    @Param('propertyId') propertyId: string,
+  ) {
+    return this.applicationService.findLatestByClientAndProperty(clientId, propertyId);
+  }
+
+  @Get(':id')
+  async getById(@Param('id') id: string) {
+    return this.applicationService.findById(id);
+  }
+
   @Patch(':id/status')
   async updateStatus(@Param('id') id: string, @Body() updateDto: UpdateApplicationDto) {
     return this.applicationService.updateStatus(id, updateDto);

@@ -3,6 +3,18 @@ import { Document, Types } from 'mongoose';
 
 export type ApplicationDocument = Application & Document;
 
+export enum ApplicationStatus {
+  PENDING = 'PENDING',
+  REQUEST_MORE_DOCUMENTS = 'REQUEST_MORE_DOCUMENTS',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
+export enum RejectionType {
+  CAN_REAPPLY = 'CAN_REAPPLY',
+  BLOCKED = 'BLOCKED',
+}
+
 @Schema({ timestamps: true })
 export class Application {
   @Prop({ type: Types.ObjectId, ref: 'Property', required: true })
@@ -41,8 +53,17 @@ export class Application {
   @Prop()
   documentUrl: string;
 
-  @Prop({ default: 'PENDING', enum: ['PENDING', 'APPROVED', 'REJECTED'] })
+  @Prop({ default: ApplicationStatus.PENDING, enum: Object.values(ApplicationStatus) })
   status: string;
+
+  @Prop({ enum: Object.values(RejectionType), required: false })
+  rejectionType?: string;
+
+  @Prop({ required: false })
+  rejectionReason?: string;
+
+  @Prop({ type: [String], default: [] })
+  improveChecklist?: string[];
 }
 
 export const ApplicationSchema = SchemaFactory.createForClass(Application);
