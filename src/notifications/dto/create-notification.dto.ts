@@ -22,4 +22,8 @@ export class CreateNotificationDto {
   @IsOptional()
   @IsMongoId()
   propertyId?: Types.ObjectId;
+
+  @IsOptional()
+  @IsMongoId()
+  applicationId?: Types.ObjectId;
 }

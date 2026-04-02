@@ -25,6 +25,9 @@ export class Notification extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Property' })
   propertyId?: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'Application' })
+  applicationId?: Types.ObjectId;
+
   @Prop({ default: false })
   isRead: boolean;
 }
