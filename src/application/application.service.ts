@@ -15,7 +15,7 @@ import { v2 as cloudinary } from 'cloudinary';
 export class ApplicationService {
   constructor(
     @InjectModel(Application.name) private applicationModel: Model<ApplicationDocument>,
-  ) {}
+  ) { }
 
   async create(createDto: CreateApplicationDto): Promise<Application> {
     const blockedReapplication = await this.applicationModel.findOne({
@@ -132,5 +132,32 @@ export class ApplicationService {
 
     if (!updated) throw new NotFoundException('Application not found');
     return updated;
+  }
+  async findAllByProperty(propertyId: string): Promise<Application[]> {
+    return this.applicationModel
+      .find({ propertyId })
+      .populate('clientId', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async findAllByBranch(branchId: string): Promise<Application[]> {
+    return this.applicationModel
+      .find({})
+      .populate({
+        path: 'propertyId',
+        match: { branchId },
+        select: 'title propertyType propertySubType price type city state size address location image images branchId',
+      })
+      .populate('clientId', 'name email phone')
+      .populate('agentId', 'name email phone')
+      .then((apps) =>
+        // Filter out applications whose properties don't match the branchId
+        apps.filter((app) => app.propertyId !== null)
+      )
+      .then((filteredApps) =>
+        // Sort by creation date
+        filteredApps.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      );
   }
 }

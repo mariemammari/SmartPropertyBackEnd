@@ -142,6 +142,18 @@ export class PropertyController {
     return this.propertiesService.findByOwner(userId);
   }
 
+  // ── Rented by Branch ──────────────────────────────────────────────────────
+  @Get('rented/branch/:branchId')
+  findRentedByBranch(@Param('branchId') branchId: string) {
+    return this.propertiesService.findRentedByBranch(branchId);
+  }
+
+  // ── Rented by Agent ───────────────────────────────────────────────────────
+  @Get('rented/agent/:agentId')
+  findRentedByAgent(@Param('agentId') agentId: string) {
+    return this.propertiesService.findRentedByAgent(agentId);
+  }
+
   // ── By Owner ──────────────────────────────────────────────────────────────
   @Get('owner/:ownerId')
   findByOwner(@Param('ownerId') ownerId: string) {

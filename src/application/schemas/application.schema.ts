@@ -18,43 +18,43 @@ export enum RejectionType {
 @Schema({ timestamps: true })
 export class Application {
   @Prop({ type: Types.ObjectId, ref: 'Property', required: true })
-  propertyId: Types.ObjectId;
+  propertyId!: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  clientId: Types.ObjectId;
+  clientId!: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  agentId: Types.ObjectId;
+  agentId!: Types.ObjectId;
 
   @Prop({ required: true })
-  fullName: string;
+  fullName!: string;
 
   @Prop({ required: true })
-  email: string;
+  email!: string;
 
   @Prop({ required: true })
-  phone: string;
+  phone!: string;
 
   @Prop()
-  age: number;
+  age?: number;
 
   @Prop()
-  familyMembers: number;
+  familyMembers?: number;
 
   @Prop()
-  occupation: string;
+  occupation?: string;
 
   @Prop()
-  monthlyIncome: number;
+  monthlyIncome?: number;
 
   @Prop()
-  notes: string;
+  notes?: string;
 
   @Prop()
-  documentUrl: string;
+  documentUrl?: string;
 
   @Prop({ default: ApplicationStatus.PENDING, enum: Object.values(ApplicationStatus) })
-  status: string;
+  status!: string;
 
   @Prop({ enum: Object.values(RejectionType), required: false })
   rejectionType?: string;

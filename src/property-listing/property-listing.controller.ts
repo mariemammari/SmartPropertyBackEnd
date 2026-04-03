@@ -33,6 +33,11 @@ export class PropertyListingController {
     return this.listingService.findByProperty(propertyId);
   }
 
+  @Get('branch/:branchId')
+  findByBranch(@Param('branchId') branchId: string) {
+    return this.listingService.findByBranch(branchId);
+  }
+
   @Get('property/:propertyId/active')
   findActiveListing(@Param('propertyId') propertyId: string) {
     return this.listingService.findActiveListing(propertyId);

@@ -86,6 +86,17 @@ export class PropertyListingService {
       .exec();
   }
 
+  // ── Find by Branch (all listings for one branch) ────────────────────────
+  async findByBranch(branchId: string): Promise<PropertyListing[]> {
+    return this.listingModel
+      .find({ branchId: new Types.ObjectId(branchId) })
+      .populate('propertyId', 'propertyType propertySubType city state size bedrooms bathrooms')
+      .populate('agentId', 'name email')
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
   // ── Find Active Listing for a Property ───────────────────────────────────
   async findActiveListing(propertyId: string): Promise<PropertyListing | null> {
     return this.listingModel

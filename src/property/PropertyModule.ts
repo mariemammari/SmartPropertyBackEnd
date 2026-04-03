@@ -4,6 +4,7 @@ import { PropertyController } from './property.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Property, PropertySchema } from './schemas/property.schema';
 import { PropertyListing, PropertyListingSchema } from '../property-listing/schemas/property-listing.schema';
+import { User, UserSchema } from '../user/schemas/user.schema';
 import { NotificationModule } from '../notification/notification.module';
 
 @Module({
@@ -12,7 +13,8 @@ import { NotificationModule } from '../notification/notification.module';
   imports: [
     MongooseModule.forFeature([
       { name: Property.name, schema: PropertySchema },
-      { name: PropertyListing.name, schema: PropertyListingSchema }
+      { name: PropertyListing.name, schema: PropertyListingSchema },
+      { name: User.name, schema: UserSchema },
     ]),
     forwardRef(() => NotificationModule)
   ],

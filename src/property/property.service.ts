@@ -2,8 +2,9 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Property, PropertyDocument } from '../property/schemas/property.schema';
+import { Property, PropertyDocument, PropertyStatus } from '../property/schemas/property.schema';
 import { PropertyListing, PropertyListingDocument } from '../property-listing/schemas/property-listing.schema';
+import { User, UserDocument } from '../user/schemas/user.schema';
 import { CreatePropertyDto, UpdatePropertyDto, PropertyFilterDto } from '../property/dto/create-property.dto';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class PropertyService {
   constructor(
     @InjectModel(Property.name) private propertyModel: Model<PropertyDocument>,
     @InjectModel(PropertyListing.name) private listingModel: Model<PropertyListingDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) { }
 
   // ── Create ────────────────────────────────────────────────────────────────
@@ -129,6 +131,54 @@ export class PropertyService {
       .find({ createdBy: new Types.ObjectId(agentId) })
       .sort({ createdAt: -1 })
       .exec();
+  }
+
+  // ── Find Rented by Branch ─────────────────────────────────────────────────
+  async findRentedByBranch(branchId: string): Promise<Property[]> {
+    console.log(`🔍 [findRentedByBranch] Searching for rented properties with branchId: ${branchId}`);
+
+    const usersInBranch = await this.userModel
+      .find({ branchId: branchId.toString() })
+      .select('_id')
+      .lean()
+      .exec();
+    const creatorIds = usersInBranch.map((u: any) => u._id);
+
+    // Return rented properties linked to branch either directly on property or via creator's branch.
+    const result = await this.propertyModel
+      .find({
+        status: PropertyStatus.RENTED,
+        $or: [
+          { branchId: branchId.toString() },
+          ...(creatorIds.length > 0 ? [{ createdBy: { $in: creatorIds } }] : []),
+        ],
+      })
+      .populate('ownerId', 'name email phone')
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    console.log(`✅ [findRentedByBranch] Found ${result.length} rented properties`);
+    return result;
+  }
+
+  // ── Find Rented by Agent ──────────────────────────────────────────────────
+  async findRentedByAgent(agentId: string): Promise<Property[]> {
+    console.log(`🔍 [findRentedByAgent] Searching for rented properties with agentId: ${agentId}`);
+
+    // Now filter for rented only using enum
+    const result = await this.propertyModel
+      .find({
+        createdBy: new Types.ObjectId(agentId),
+        status: PropertyStatus.RENTED
+      })
+      .populate('ownerId', 'name email phone')
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    console.log(`✅ [findRentedByAgent] Found ${result.length} rented properties`);
+    return result;
   }
 
   // ── Update ────────────────────────────────────────────────────────────────

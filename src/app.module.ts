@@ -17,8 +17,11 @@ import { PropertyMediaModule } from './Property-Media/property-media.module';
 import { NotificationModule } from './notification/notification.module';
 import { ApplicationModule } from './application/application.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { NearbyModule } from './nearby/nearby.module';
 import { AiModule } from './ai/ai.module';
 import { FinanceModule } from './finance/finance.module';
+//VERY MAILING IMPORT
+import { MailModule } from './mail/mail.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 
 @Module({
@@ -59,12 +62,14 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     ChatModule,
     NotificationModule,
     NotificationsModule,
+    NearbyModule,
     VisitsModule,
     BranchModule,
     ComplaintModule,
     ApplicationModule,
     AiModule,
     FinanceModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService, LazyModuleLoader],
