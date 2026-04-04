@@ -49,15 +49,15 @@ export class FeesDto {
 // ─── Create ───────────────────────────────────────────────────────────────────
 
 export class CreatePropertyListingDto {
-  @IsMongoId() propertyId: string;
-  @IsMongoId() ownerId: string;
-  @IsMongoId() createdBy: string;
+  @IsMongoId() propertyId!: string;
+  @IsMongoId() ownerId!: string;
+  @IsMongoId() createdBy!: string;
 
   @IsMongoId() @IsOptional() agentId?: string;
   @IsMongoId() @IsOptional() branchId?: string;
 
   // ─── Pricing ───────────────────────────────────────────────
-  @IsNumber() @Min(0) price: number;
+  @IsNumber() @Min(0) price!: number;
 
   @IsNumber() @Min(0) @IsOptional() monthlyCharges?: number;
   @IsBoolean() @IsOptional() isPriceNegotiable?: boolean;
@@ -123,6 +123,17 @@ export class UpdatePropertyListingDto {
 
   @ValidateNested() @Type(() => FeesDto) @IsOptional()
   fees?: FeesDto;
+
+  // ─── Rental trigger fields ─────────────────────────────────────────
+  @IsMongoId() @IsOptional() tenantId?: string;
+  @IsNumber() @Min(1) @IsOptional() durationMonths?: number;
+  @IsNumber() @Min(1) @IsOptional() paymentFrequencyMonths?: number;
+  @IsBoolean() @IsOptional() autoRenew?: boolean;
+  @IsNumber() @Min(0) @IsOptional() noticePeriodDays?: number;
+  @Type(() => Date) @IsDate() @IsOptional() contractSignedAt?: Date;
+  @Type(() => Date) @IsDate() @IsOptional() moveInDate?: Date;
+  @Type(() => Date) @IsDate() @IsOptional() moveOutDate?: Date;
+  @IsString() @IsOptional() notes?: string;
 
   // ─── Custom Fields ──────────────────────────────────────────
   @IsObject() @IsOptional() customFields?: Record<string, any>;

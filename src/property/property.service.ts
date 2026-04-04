@@ -5,6 +5,7 @@ import { Model, Types } from 'mongoose';
 import { Property, PropertyDocument, PropertyStatus } from '../property/schemas/property.schema';
 import { PropertyListing, PropertyListingDocument } from '../property-listing/schemas/property-listing.schema';
 import { User, UserDocument } from '../user/schemas/user.schema';
+import { RentalService } from '../rental/rental.service';
 import { CreatePropertyDto, UpdatePropertyDto, PropertyFilterDto } from '../property/dto/create-property.dto';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class PropertyService {
     @InjectModel(Property.name) private propertyModel: Model<PropertyDocument>,
     @InjectModel(PropertyListing.name) private listingModel: Model<PropertyListingDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly rentalService: RentalService,
   ) { }
 
   // ── Create ────────────────────────────────────────────────────────────────
@@ -133,6 +135,24 @@ export class PropertyService {
       .exec();
   }
 
+  // ── Find Rented by Owner ─────────────────────────────────────────────────
+  async findRentedByOwner(ownerId: string): Promise<Property[]> {
+    console.log(`🔍 [findRentedByOwner] Searching for rented properties with ownerId: ${ownerId}`);
+
+    const result = await this.propertyModel
+      .find({
+        ownerId: new Types.ObjectId(ownerId),
+        status: PropertyStatus.RENTED
+      })
+      .populate('ownerId', 'name email phone')
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    console.log(`✅ [findRentedByOwner] Found ${result.length} rented properties`);
+    return result;
+  }
+
   // ── Find Rented by Branch ─────────────────────────────────────────────────
   async findRentedByBranch(branchId: string): Promise<Property[]> {
     console.log(`🔍 [findRentedByBranch] Searching for rented properties with branchId: ${branchId}`);
@@ -183,7 +203,17 @@ export class PropertyService {
 
   // ── Update ────────────────────────────────────────────────────────────────
   async update(id: string, dto: UpdatePropertyDto): Promise<Property> {
-    const update: any = { ...dto };
+    const existing = await this.propertyModel.findById(id).exec();
+    if (!existing) throw new NotFoundException(`Property ${id} not found`);
+
+    // Extract rental trigger fields before applying update to property
+    const {
+      tenantId, propertyListingId, durationMonths, paymentFrequencyMonths,
+      autoRenew, noticePeriodDays, contractSignedAt, moveInDate, moveOutDate, notes,
+      ...propertyUpdate
+    } = dto;
+
+    const update: any = { ...propertyUpdate };
 
     // Re-sync GeoJSON if lat/lng updated
     if (Number.isFinite(dto.lat) && Number.isFinite(dto.lng)) {
@@ -196,6 +226,30 @@ export class PropertyService {
       .findByIdAndUpdate(id, update, { new: true })
       .exec();
     if (!property) throw new NotFoundException(`Property ${id} not found`);
+
+    if (dto.status === PropertyStatus.RENTED && existing.status !== PropertyStatus.RENTED) {
+      console.log(`🔷 [PropertyService.update] Status changed to RENTED. Creating rental for property:`, property._id);
+      try {
+        await this.rentalService.createFromPropertyStatusChange({
+          propertyId: property._id.toString(),
+          propertyListingId,
+          tenantId,
+          durationMonths,
+          paymentFrequencyMonths,
+          autoRenew,
+          noticePeriodDays,
+          contractSignedAt,
+          moveInDate,
+          moveOutDate,
+          notes,
+        });
+        console.log(`✅ [PropertyService.update] Rental created successfully for property:`, property._id);
+      } catch (error: any) {
+        console.log(`❌ [PropertyService.update] Failed to create rental:`, error.message);
+        throw error;
+      }
+    }
+
     return property;
   }
 

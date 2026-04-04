@@ -23,6 +23,9 @@ dns.setServers(['8.8.8.8', '1.1.1.1']);
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Stripe webhook requires raw body for signature verification.
+  app.use('/rentals/webhook/stripe', express.raw({ type: 'application/json' }));
+
   // Increase request body limit to 50MB for photo uploads
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -42,7 +45,6 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
       transform: true,
       transformOptions: {
         enableImplicitConversion: true,

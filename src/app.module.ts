@@ -20,6 +20,8 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { NearbyModule } from './nearby/nearby.module';
 import { AiModule } from './ai/ai.module';
 import { FinanceModule } from './finance/finance.module';
+import { RentalModule } from './rental/rental.module';
+import { RentalChatModule } from './rental-chat/rental-chat.module';
 //VERY MAILING IMPORT
 import { MailModule } from './mail/mail.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
@@ -70,6 +72,8 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     AiModule,
     FinanceModule,
     MailModule,
+    RentalModule,
+    RentalChatModule,
   ],
   controllers: [AppController],
   providers: [AppService, LazyModuleLoader],

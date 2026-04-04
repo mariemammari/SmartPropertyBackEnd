@@ -142,7 +142,7 @@ export class ApplicationService {
   }
 
   async findAllByBranch(branchId: string): Promise<Application[]> {
-    return this.applicationModel
+    const apps = await this.applicationModel
       .find({})
       .populate({
         path: 'propertyId',
@@ -151,13 +151,16 @@ export class ApplicationService {
       })
       .populate('clientId', 'name email phone')
       .populate('agentId', 'name email phone')
-      .then((apps) =>
-        // Filter out applications whose properties don't match the branchId
-        apps.filter((app) => app.propertyId !== null)
-      )
-      .then((filteredApps) =>
-        // Sort by creation date
-        filteredApps.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      );
+      .exec();
+
+    // Filter out applications whose properties don't match the branchId
+    const filteredApps = apps.filter((app) => app.propertyId !== null);
+
+    // Sort by creation date (descending)
+    return filteredApps.sort((a, b) => {
+      const aTime = (a as any).createdAt instanceof Date ? (a as any).createdAt.getTime() : 0;
+      const bTime = (b as any).createdAt instanceof Date ? (b as any).createdAt.getTime() : 0;
+      return bTime - aTime;
+    });
   }
 }

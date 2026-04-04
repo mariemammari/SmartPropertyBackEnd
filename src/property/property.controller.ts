@@ -154,6 +154,12 @@ export class PropertyController {
     return this.propertiesService.findRentedByAgent(agentId);
   }
 
+  // ── Rented by Owner ───────────────────────────────────────────────────────
+  @Get('rented/owner/:ownerId')
+  findRentedByOwner(@Param('ownerId') ownerId: string) {
+    return this.propertiesService.findRentedByOwner(ownerId);
+  }
+
   // ── By Owner ──────────────────────────────────────────────────────────────
   @Get('owner/:ownerId')
   findByOwner(@Param('ownerId') ownerId: string) {
