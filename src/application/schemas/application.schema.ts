@@ -45,7 +45,34 @@ export class Application {
   occupation?: string;
 
   @Prop()
+  employmentStatus?: string;
+
+  @Prop()
+  employerName?: string;
+
+  @Prop()
   monthlyIncome?: number;
+
+  @Prop()
+  preferredMoveInDate?: Date;
+
+  @Prop()
+  leaseDurationMonths?: number;
+
+  @Prop()
+  hasPets?: boolean;
+
+  @Prop()
+  petsDetails?: string;
+
+  @Prop()
+  hasGuarantor?: boolean;
+
+  @Prop()
+  guarantorName?: string;
+
+  @Prop()
+  guarantorPhone?: string;
 
   @Prop()
   notes?: string;
