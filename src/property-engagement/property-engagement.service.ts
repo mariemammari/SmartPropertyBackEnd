@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Property, PropertyDocument } from '../property/schemas/property.schema';
 import { User, UserDocument, UserRole } from '../user/schemas/user.schema';
+import { NotificationsService } from '../notifications/notifications.service';
 import {
   PropertyEngagementEvent,
   PropertyEngagementEventDocument,
@@ -25,6 +26,7 @@ export class PropertyEngagementService {
     private readonly propertyModel: Model<PropertyDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   private toSafeText(value: any): string {
@@ -128,6 +130,80 @@ export class PropertyEngagementService {
     throw new ForbiddenException('You are not allowed to access property engagement statistics');
   }
 
+  private async notifyMilestoneIfNeeded(params: {
+    propertyId: string;
+    propertyTitle: string;
+    createdBy: string;
+    branchId: string;
+  }): Promise<void> {
+    const propertyObjectId = new Types.ObjectId(params.propertyId);
+
+    const [totals] = await this.eventModel.aggregate([
+      { $match: { propertyId: propertyObjectId } },
+      {
+        $group: {
+          _id: null,
+          clicks: {
+            $sum: {
+              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.CLICK] }, 1, 0],
+            },
+          },
+          views: {
+            $sum: {
+              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.VIEW] }, 1, 0],
+            },
+          },
+        },
+      },
+    ]);
+
+    const views = Number(totals?.views || 0);
+    const milestone = Math.floor(views / 3) * 3;
+
+    if (milestone < 3) {
+      return;
+    }
+
+    const clicks = Number(totals?.clicks || 0);
+
+    const recipientIds = new Set<string>();
+    if (Types.ObjectId.isValid(params.createdBy)) {
+      recipientIds.add(params.createdBy);
+    }
+
+    if (params.branchId) {
+      const branchManagers = await this.userModel
+        .find({ role: UserRole.BRANCH_MANAGER, branchId: params.branchId })
+        .select('_id')
+        .lean();
+
+      branchManagers.forEach((manager: any) => {
+        const managerId = this.toSafeText(manager?._id);
+        if (Types.ObjectId.isValid(managerId)) {
+          recipientIds.add(managerId);
+        }
+      });
+    }
+
+    if (!recipientIds.size) {
+      return;
+    }
+
+    const title = `Property Milestone: ${milestone} Views`;
+    const message = `"${params.propertyTitle}" reached the ${milestone}-view milestone (${views} total views, ${clicks} clicks recorded).`;
+
+    await Promise.all(
+      [...recipientIds].map((recipientId) =>
+        this.notificationsService.createMilestoneIfMissing({
+          recipientId,
+          propertyId: params.propertyId,
+          title,
+          message,
+        }),
+      ),
+    );
+  }
+
   async trackEvent(currentUser: any, payload: any): Promise<any> {
     const userId = this.resolveUserId(currentUser);
     const propertyId = this.toSafeText(payload?.propertyId);
@@ -177,6 +253,7 @@ export class PropertyEngagementService {
 
     const createdBy = this.toSafeText((property as any)?.createdBy);
     const branchId = this.toSafeText((property as any)?.branchId);
+    const propertyTitle = this.normalizePropertyTitle(property);
 
     const event = await this.eventModel.create({
       propertyId: new Types.ObjectId(propertyId),
@@ -187,8 +264,19 @@ export class PropertyEngagementService {
       source: this.toSafeText(payload?.source),
       propertyBranchId: branchId,
       propertyCreatedById: createdBy,
-      propertyTitleSnapshot: this.normalizePropertyTitle(property),
+      propertyTitleSnapshot: propertyTitle,
     });
+
+    try {
+      await this.notifyMilestoneIfNeeded({
+        propertyId,
+        propertyTitle,
+        createdBy,
+        branchId,
+      });
+    } catch {
+      // Engagement tracking must not fail if milestone notification creation fails.
+    }
 
     return {
       recorded: true,

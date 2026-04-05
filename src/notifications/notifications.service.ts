@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Notification } from './schemas/notification.schema';
+import { Notification, NotificationType } from './schemas/notification.schema';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 
 @Injectable()
@@ -12,6 +12,43 @@ export class NotificationsService {
 
   async create(createNotificationDto: CreateNotificationDto): Promise<Notification> {
     const createdNotification = new this.notificationModel(createNotificationDto);
+    return createdNotification.save();
+  }
+
+  async createMilestoneIfMissing(params: {
+    recipientId: string;
+    propertyId: string;
+    title: string;
+    message: string;
+  }): Promise<Notification | null> {
+    const { recipientId, propertyId, title, message } = params;
+
+    if (!Types.ObjectId.isValid(recipientId) || !Types.ObjectId.isValid(propertyId)) {
+      return null;
+    }
+
+    const recipientObjectId = new Types.ObjectId(recipientId);
+    const propertyObjectId = new Types.ObjectId(propertyId);
+
+    const exists = await this.notificationModel.findOne({
+      recipientId: recipientObjectId,
+      propertyId: propertyObjectId,
+      type: NotificationType.MILESTONE,
+      title,
+    }).select('_id').lean();
+
+    if (exists) {
+      return null;
+    }
+
+    const createdNotification = new this.notificationModel({
+      recipientId: recipientObjectId,
+      propertyId: propertyObjectId,
+      type: NotificationType.MILESTONE,
+      title,
+      message,
+    });
+
     return createdNotification.save();
   }
 

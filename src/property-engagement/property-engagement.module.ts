@@ -9,9 +9,11 @@ import {
 import { Property, PropertySchema } from '../property/schemas/property.schema';
 import { User, UserSchema } from '../user/schemas/user.schema';
 import { RolesGuard } from '../auth/guards/roles.guards';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
+    NotificationsModule,
     MongooseModule.forFeature([
       { name: PropertyEngagementEvent.name, schema: PropertyEngagementEventSchema },
       { name: Property.name, schema: PropertySchema },
