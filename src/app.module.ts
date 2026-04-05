@@ -22,6 +22,7 @@ import { AiModule } from './ai/ai.module';
 import { FinanceModule } from './finance/finance.module';
 import { RentalModule } from './rental/rental.module';
 import { RentalChatModule } from './rental-chat/rental-chat.module';
+import { PropertyEngagementModule } from './property-engagement/property-engagement.module';
 //VERY MAILING IMPORT
 import { MailModule } from './mail/mail.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
@@ -71,6 +72,7 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     ApplicationModule,
     AiModule,
     FinanceModule,
+    PropertyEngagementModule,
     MailModule,
     RentalModule,
     RentalChatModule,
