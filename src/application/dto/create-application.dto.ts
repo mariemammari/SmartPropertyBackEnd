@@ -45,6 +45,14 @@ export class CreateApplicationDto {
   @IsOptional()
   employerName?: string;
 
+  @IsString()
+  @IsOptional()
+  financialSupportDetails?: string;
+
+  @IsString()
+  @IsOptional()
+  studentCardNumber?: string;
+
   @IsNumber()
   @IsOptional()
   monthlyIncome?: number;

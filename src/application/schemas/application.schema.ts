@@ -51,6 +51,12 @@ export class Application {
   employerName?: string;
 
   @Prop()
+  financialSupportDetails?: string;
+
+  @Prop()
+  studentCardNumber?: string;
+
+  @Prop()
   monthlyIncome?: number;
 
   @Prop()
