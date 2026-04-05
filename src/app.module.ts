@@ -19,6 +19,7 @@ import { ApplicationModule } from './application/application.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AiModule } from './ai/ai.module';
 import { FinanceModule } from './finance/finance.module';
+import { PropertySubmissionModule } from './property-submission/property-submission.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 
 @Module({
@@ -65,6 +66,7 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     ApplicationModule,
     AiModule,
     FinanceModule,
+    PropertySubmissionModule,
   ],
   controllers: [AppController],
   providers: [AppService, LazyModuleLoader],

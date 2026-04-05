@@ -115,6 +115,10 @@ export class User {
 
   @Prop({ type: String, default: '' })
   signature?: string;
+
+  // ─── Assignment Tracking ─────────────────────────────────────
+  @Prop()
+  lastAssignedAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

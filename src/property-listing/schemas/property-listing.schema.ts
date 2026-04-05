@@ -15,6 +15,11 @@ export enum ListingStatus {
   ARCHIVED       = 'archived',
 }
 
+export enum AssignmentStatus {
+  ASSIGNED   = 'assigned',
+  UNASSIGNED = 'unassigned',
+}
+
 export enum FurnishingStatus {
   FURNISHED           = 'furnished',
   PARTIALLY_FURNISHED = 'partially_furnished',
@@ -145,6 +150,25 @@ export class PropertyListing {
   // ─── Custom Fields ────────────────────────────────────────────
   @Prop({ type: Object, default: {} })
   customFields: Record<string, any>;
+
+  // ─── Client Submission & Assignment ──────────────────────────
+  @Prop({ default: false })
+  submittedByClient: boolean;
+
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  assignedAgentId: Types.ObjectId | null;
+
+  @Prop({
+    enum: ['assigned', 'unassigned'],
+    default: 'unassigned',
+  })
+  assignmentStatus: string;
+
+  @Prop({ type: Date, default: null })
+  assignedAt: Date | null;
+
+  @Prop({ type: Date, default: null })
+  lastAssignedAt: Date | null;
 }
 
 export const PropertyListingSchema = SchemaFactory.createForClass(PropertyListing);
@@ -153,6 +177,9 @@ export const PropertyListingSchema = SchemaFactory.createForClass(PropertyListin
 PropertyListingSchema.index({ propertyId: 1 });
 PropertyListingSchema.index({ status: 1, createdAt: -1 });
 PropertyListingSchema.index({ agentId: 1, status: 1 });
+PropertyListingSchema.index({ assignedAgentId: 1, status: 1 });
+PropertyListingSchema.index({ assignmentStatus: 1, branchId: 1 });
+PropertyListingSchema.index({ submittedByClient: 1, assignmentStatus: 1 });
 
 // ─── Auto referenceNumber ─────────────────────────────────────────────────────
 PropertyListingSchema.pre('save', function () {

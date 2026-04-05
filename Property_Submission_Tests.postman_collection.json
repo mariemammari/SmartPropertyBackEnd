@@ -1,0 +1,489 @@
+{
+  "info": {
+    "name": "Property Submission Workflow",
+    "description": "Test collection for client submissions & agent review",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1️⃣ CLIENT SUBMISSION - WITH AGENT",
+      "description": "Client submits a property - auto-assigns to agent with lowest workload",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{clientToken}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"branchId\": \"{{branchId}}\",\n  \"propertyType\": \"villa\",\n  \"type\": \"sale\",\n  \"title\": \"Villa Carthage - Test Submission\",\n  \"description\": \"Beautiful villa submitted by client\",\n  \"price\": 450000,\n  \"bedrooms\": 4,\n  \"bathrooms\": 2,\n  \"size\": 250,\n  \"city\": \"Tunis\",\n  \"address\": \"Main Avenue, Carthage\",\n  \"postalCode\": \"2070\",\n  \"lat\": 36.85,\n  \"lng\": 10.33,\n  \"furnishingStatus\": \"unfurnished\",\n  \"standing\": \"haut_standing\",\n  \"condition\": \"excellent\",\n  \"yearBuilt\": 2015,\n  \"hasParking\": true,\n  \"hasGarden\": true,\n  \"hasPool\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/property-submissions/client",
+          "host": ["{{baseUrl}}"],
+          "path": ["property-submissions", "client"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201 || pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.environment.set('submissionId', jsonData.data._id || jsonData.listing._id);",
+              "    pm.environment.set('assignedAgentId', jsonData.data.assignedAgentId || jsonData.listing.assignedAgentId);",
+              "    ",
+              "    console.log('✅ SUBMISSION CREATED');",
+              "    console.log('Submission ID: ' + pm.environment.get('submissionId'));",
+              "    console.log('Assigned Agent: ' + pm.environment.get('assignedAgentId'));",
+              "    console.log('Status: ' + (jsonData.data?.status || jsonData.listing?.status));",
+              "    console.log('submittedByClient: ' + (jsonData.data?.submittedByClient || jsonData.listing?.submittedByClient));",
+              "    ",
+              "    pm.test('Status should be pending_review', function() {",
+              "        pm.expect(jsonData.data?.status || jsonData.listing?.status).to.equal('pending_review');",
+              "    });",
+              "    ",
+              "    pm.test('submittedByClient should be true', function() {",
+              "        pm.expect(jsonData.data?.submittedByClient || jsonData.listing?.submittedByClient).to.be.true;",
+              "    });",
+              "    ",
+              "    pm.test('assignmentStatus should be assigned or unassigned', function() {",
+              "        var status = jsonData.data?.assignmentStatus || jsonData.listing?.assignmentStatus;",
+              "        pm.expect(['assigned', 'unassigned']).to.include(status);",
+              "    });",
+              "}",
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2️⃣ VALIDATION - MISSING branchId",
+      "description": "Test: Should reject submission without branchId",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{clientToken}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"propertyType\": \"villa\",\n  \"type\": \"sale\",\n  \"price\": 450000,\n  \"bedrooms\": 4\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/property-submissions/client",
+          "host": ["{{baseUrl}}"],
+          "path": ["property-submissions", "client"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Should return 422 Unprocessable Entity', function() {",
+              "    pm.expect(pm.response.code).to.equal(422);",
+              "});",
+              "",
+              "pm.test('Error message should mention branchId', function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(JSON.stringify(jsonData).toLowerCase()).to.include('branchid');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3️⃣ NO AGENTS - Fallback to unassigned",
+      "description": "Submit to branch with NO eligible agents → stays unassigned",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{clientToken}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"branchId\": \"{{emptyBranchId}}\",\n  \"propertyType\": \"apartment\",\n  \"type\": \"rent\",\n  \"title\": \"Test - Empty Branch\",\n  \"price\": 1500,\n  \"bedrooms\": 2,\n  \"city\": \"Ariana\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/property-submissions/client",
+          "host": ["{{baseUrl}}"],
+          "path": ["property-submissions", "client"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "",
+              "pm.test('Should still succeed (201)', function() {",
+              "    pm.expect([200, 201]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('assignmentStatus should be unassigned', function() {",
+              "    pm.expect(jsonData.listing?.assignmentStatus || jsonData.data?.assignmentStatus).to.equal('unassigned');",
+              "});",
+              "",
+              "pm.test('assignedAgentId should be null', function() {",
+              "    pm.expect(jsonData.listing?.assignedAgentId || jsonData.data?.assignedAgentId).to.be.null;",
+              "});",
+              "",
+              "pm.test('Warning should be present', function() {",
+              "    pm.expect(jsonData.warning).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4️⃣ AGENT: View My Pending Submissions",
+      "description": "Agent fetches their assigned pending submissions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{agentToken}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/property-submissions/assigned/pending?page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["property-submissions", "assigned", "pending"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "",
+              "pm.test('Should return 200', function() {",
+              "    pm.expect(pm.response.code).to.equal(200);",
+              "});",
+              "",
+              "pm.test('Should have data array', function() {",
+              "    pm.expect(jsonData.data).to.be.an('array');",
+              "});",
+              "",
+              "pm.test('Should have pagination info', function() {",
+              "    pm.expect(jsonData.total).to.exist;",
+              "    pm.expect(jsonData.page).to.equal(1);",
+              "    pm.expect(jsonData.pages).to.exist;",
+              "});",
+              "",
+              "if (jsonData.data.length > 0) {",
+              "    console.log('✅ Agent has ' + jsonData.data.length + ' pending submissions');",
+              "    console.log('First submission: ' + jsonData.data[0]._id);",
+              "} else {",
+              "    console.log('ℹ️  No pending submissions yet');",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5️⃣ AGENT: GET Submission Details",
+      "description": "Fetch full details of a submission",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{agentToken}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/property-submissions/{{submissionId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["property-submissions", "{{submissionId}}"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "",
+              "pm.test('Should return 200', function() {",
+              "    pm.expect(pm.response.code).to.equal(200);",
+              "});",
+              "",
+              "pm.test('Should have populated propertyId', function() {",
+              "    pm.expect(jsonData.data.propertyId).to.exist;",
+              "});",
+              "",
+              "pm.test('Should have ownerId details', function() {",
+              "    pm.expect(jsonData.data.ownerId).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6️⃣ AGENT: APPROVE Submission",
+      "description": "Agent approves submitted property",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{agentToken}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"agentComments\": \"Excellent property. Photos are clear and complete. Pricing is competitive.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/property-submissions/{{submissionId}}/approve",
+          "host": ["{{baseUrl}}"],
+          "path": ["property-submissions", "{{submissionId}}", "approve"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "",
+              "pm.test('Should return 200', function() {",
+              "    pm.expect(pm.response.code).to.equal(200);",
+              "});",
+              "",
+              "pm.test('Status should be approved', function() {",
+              "    pm.expect(jsonData.data.status || jsonData.listing?.status).to.equal('approved');",
+              "});",
+              "",
+              "pm.test('reviewedBy should be set', function() {",
+              "    pm.expect(jsonData.data.reviewedBy || jsonData.listing?.reviewedBy).to.exist;",
+              "});",
+              "",
+              "pm.test('reviewedAt should be set', function() {",
+              "    pm.expect(jsonData.data.reviewedAt || jsonData.listing?.reviewedAt).to.exist;",
+              "});",
+              "",
+              "console.log('✅ SUBMISSION APPROVED');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7️⃣ AGENT: REJECT Submission",
+      "description": "Agent rejects submitted property (use new submissionId)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{agentToken}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"rejectionReason\": \"Property photos are of poor quality - need professional photography\",\n  \"agentComments\": \"Please provide high-resolution photos taken during daylight. Include exterior and all major rooms.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/property-submissions/{{submissionId2}}/reject",
+          "host": ["{{baseUrl}}"],
+          "path": ["property-submissions", "{{submissionId2}}", "reject"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "",
+              "pm.test('Should return 200', function() {",
+              "    pm.expect(pm.response.code).to.equal(200);",
+              "});",
+              "",
+              "pm.test('Status should be rejected', function() {",
+              "    pm.expect(jsonData.data.status || jsonData.listing?.status).to.equal('rejected');",
+              "});",
+              "",
+              "pm.test('rejectionReason should be stored', function() {",
+              "    pm.expect(jsonData.data.rejectionReason || jsonData.listing?.rejectionReason).to.exist;",
+              "});",
+              "",
+              "console.log('✅ SUBMISSION REJECTED');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8️⃣ SECURITY: Wrong Agent Cannot Approve",
+      "description": "Test: Agent2 tries to approve submission assigned to Agent1",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{agent2Token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"agentComments\": \"I approve\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/property-submissions/{{submissionId}}/approve",
+          "host": ["{{baseUrl}}"],
+          "path": ["property-submissions", "{{submissionId}}", "approve"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Should return 400 Bad Request', function() {",
+              "    pm.expect(pm.response.code).to.equal(400);",
+              "});",
+              "",
+              "pm.test('Error should mention assigned agent', function() {",
+              "    var text = pm.response.text().toLowerCase();",
+              "    pm.expect(text).to.include('assigned');",
+              "});",
+              "",
+              "console.log('✅ SECURITY CHECK PASSED - Wrong agent blocked');"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "clientToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT token for CLIENT user"
+    },
+    {
+      "key": "agentToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT token for REAL_ESTATE_AGENT (same branch)"
+    },
+    {
+      "key": "agent2Token",
+      "value": "",
+      "type": "string",
+      "description": "JWT token for second REAL_ESTATE_AGENT (for security test)"
+    },
+    {
+      "key": "branchId",
+      "value": "",
+      "type": "string",
+      "description": "ObjectId of the branch with active agents"
+    },
+    {
+      "key": "emptyBranchId",
+      "value": "",
+      "type": "string",
+      "description": "ObjectId of a branch with NO active agents"
+    },
+    {
+      "key": "submissionId",
+      "value": "",
+      "type": "string",
+      "description": "Auto-populated from submission response"
+    },
+    {
+      "key": "submissionId2",
+      "value": "",
+      "type": "string",
+      "description": "Second submission ID for reject test"
+    },
+    {
+      "key": "assignedAgentId",
+      "value": "",
+      "type": "string",
+      "description": "Auto-populated - the agent assigned to submission"
+    }
+  ]
+}
