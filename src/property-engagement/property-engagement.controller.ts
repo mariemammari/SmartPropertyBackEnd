@@ -38,7 +38,7 @@ export class PropertyEngagementController {
 
   @Get('summary/property/:propertyId')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.REAL_ESTATE_AGENT, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN)
+  @Roles(UserRole.REAL_ESTATE_AGENT, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN, UserRole.CLIENT)
   async getPropertySummary(@Request() req: any, @Param('propertyId') propertyId: string) {
     return this.propertyEngagementService.getPropertySummary(propertyId, req.user);
   }

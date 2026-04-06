@@ -127,6 +127,10 @@ export class PropertyEngagementService {
       return;
     }
 
+    if (role === UserRole.CLIENT) {
+      return;
+    }
+
     throw new ForbiddenException('You are not allowed to access property engagement statistics');
   }
 
@@ -215,9 +219,10 @@ export class PropertyEngagementService {
 
     if (
       eventType !== PropertyEngagementEventType.CLICK &&
-      eventType !== PropertyEngagementEventType.VIEW
+      eventType !== PropertyEngagementEventType.VIEW &&
+      eventType !== PropertyEngagementEventType.SAVE
     ) {
-      throw new BadRequestException('eventType must be CLICK or VIEW');
+      throw new BadRequestException('eventType must be CLICK, VIEW or SAVE');
     }
 
     const property = await this.propertyModel
@@ -305,6 +310,11 @@ export class PropertyEngagementService {
               $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.VIEW] }, 1, 0],
             },
           },
+          saves: {
+            $sum: {
+              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.SAVE] }, 1, 0],
+            },
+          },
           totalEvents: { $sum: 1 },
           uniqueUsersSet: { $addToSet: '$userId' },
           uniquePropertiesSet: { $addToSet: '$propertyId' },
@@ -316,6 +326,7 @@ export class PropertyEngagementService {
           _id: 0,
           clicks: 1,
           views: 1,
+          saves: 1,
           totalEvents: 1,
           uniqueUsers: { $size: '$uniqueUsersSet' },
           uniqueProperties: { $size: '$uniquePropertiesSet' },
@@ -339,6 +350,11 @@ export class PropertyEngagementService {
               $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.VIEW] }, 1, 0],
             },
           },
+          saves: {
+            $sum: {
+              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.SAVE] }, 1, 0],
+            },
+          },
           totalEvents: { $sum: 1 },
           uniqueUsersSet: { $addToSet: '$userId' },
           lastEventAt: { $max: '$createdAt' },
@@ -351,6 +367,7 @@ export class PropertyEngagementService {
           propertyId: '$_id',
           clicks: 1,
           views: 1,
+          saves: 1,
           totalEvents: 1,
           uniqueUsers: { $size: '$uniqueUsersSet' },
           lastEventAt: 1,
@@ -375,6 +392,11 @@ export class PropertyEngagementService {
               $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.VIEW] }, 1, 0],
             },
           },
+          saves: {
+            $sum: {
+              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.SAVE] }, 1, 0],
+            },
+          },
           totalEvents: { $sum: 1 },
           uniquePropertiesSet: { $addToSet: '$propertyId' },
           lastEventAt: { $max: '$createdAt' },
@@ -386,6 +408,7 @@ export class PropertyEngagementService {
           userId: '$_id',
           clicks: 1,
           views: 1,
+          saves: 1,
           totalEvents: 1,
           uniqueProperties: { $size: '$uniquePropertiesSet' },
           lastEventAt: 1,
@@ -432,6 +455,7 @@ export class PropertyEngagementService {
           `Property #${propertyId.slice(-6)}`,
         clicks: Number(item.clicks) || 0,
         views: Number(item.views) || 0,
+        saves: Number(item.saves) || 0,
         totalEvents: Number(item.totalEvents) || 0,
         uniqueUsers: Number(item.uniqueUsers) || 0,
         lastEventAt: item.lastEventAt || null,
@@ -448,6 +472,7 @@ export class PropertyEngagementService {
         email: this.toSafeText(user?.email),
         clicks: Number(item.clicks) || 0,
         views: Number(item.views) || 0,
+        saves: Number(item.saves) || 0,
         totalEvents: Number(item.totalEvents) || 0,
         uniqueProperties: Number(item.uniqueProperties) || 0,
         lastEventAt: item.lastEventAt || null,
@@ -459,6 +484,7 @@ export class PropertyEngagementService {
       ({
         clicks: 0,
         views: 0,
+        saves: 0,
         totalEvents: 0,
         uniqueUsers: 0,
         uniqueProperties: 0,
@@ -515,6 +541,11 @@ export class PropertyEngagementService {
               $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.VIEW] }, 1, 0],
             },
           },
+          saves: {
+            $sum: {
+              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.SAVE] }, 1, 0],
+            },
+          },
           totalEvents: { $sum: 1 },
           uniqueUsersSet: { $addToSet: '$userId' },
           lastEventAt: { $max: '$createdAt' },
@@ -525,6 +556,7 @@ export class PropertyEngagementService {
           _id: 0,
           clicks: 1,
           views: 1,
+          saves: 1,
           totalEvents: 1,
           uniqueUsers: { $size: '$uniqueUsersSet' },
           lastEventAt: 1,
@@ -547,6 +579,11 @@ export class PropertyEngagementService {
               $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.VIEW] }, 1, 0],
             },
           },
+          saves: {
+            $sum: {
+              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.SAVE] }, 1, 0],
+            },
+          },
           totalEvents: { $sum: 1 },
           lastEventAt: { $max: '$createdAt' },
         },
@@ -557,6 +594,7 @@ export class PropertyEngagementService {
           userId: '$_id',
           clicks: 1,
           views: 1,
+          saves: 1,
           totalEvents: 1,
           lastEventAt: 1,
         },
@@ -586,6 +624,7 @@ export class PropertyEngagementService {
         email: this.toSafeText(user?.email),
         clicks: Number(item.clicks) || 0,
         views: Number(item.views) || 0,
+        saves: Number(item.saves) || 0,
         totalEvents: Number(item.totalEvents) || 0,
         lastEventAt: item.lastEventAt || null,
       };
@@ -601,6 +640,7 @@ export class PropertyEngagementService {
         ({
           clicks: 0,
           views: 0,
+          saves: 0,
           totalEvents: 0,
           uniqueUsers: 0,
           lastEventAt: null,

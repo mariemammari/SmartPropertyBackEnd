@@ -6,6 +6,7 @@ export type PropertyEngagementEventDocument = PropertyEngagementEvent & Document
 export enum PropertyEngagementEventType {
   CLICK = 'CLICK',
   VIEW = 'VIEW',
+  SAVE = 'SAVE',
 }
 
 @Schema({ timestamps: true, collection: 'property_engagement_events' })
