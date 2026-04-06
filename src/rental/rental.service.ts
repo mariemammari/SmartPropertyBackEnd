@@ -76,11 +76,12 @@ export class RentalService {
         @InjectModel(Application.name) private applicationModel: Model<ApplicationDocument>,
         @InjectModel(User.name) private userModel: Model<UserDocument>,
     ) {
-        const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
-        this.stripeWebhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET') ?? null;
+        const stripeKey = (this.configService.get<string>('STRIPE_SECRET_KEY') ?? '').trim();
+        const webhookSecret = (this.configService.get<string>('STRIPE_WEBHOOK_SECRET') ?? '').trim();
+        this.stripeWebhookSecret = webhookSecret || null;
         this.stripe = stripeKey ? new Stripe(stripeKey, { apiVersion: '2023-10-16' as any }) : null;
         this.forceStripeSucceededOnCreate =
-            (this.configService.get<string>('FORCE_STRIPE_SUCCEEDED_ON_CREATE') ?? 'true').toLowerCase() !== 'false';
+            (this.configService.get<string>('FORCE_STRIPE_SUCCEEDED_ON_CREATE') ?? 'true').trim().toLowerCase() !== 'false';
     }
 
     /**
@@ -476,9 +477,10 @@ export class RentalService {
         const listing = await this.listingModel.findById(rental.propertyListingId).exec();
         if (!listing) throw new NotFoundException('Property listing not found');
 
-        const amount = this.getListingRentAmount(listing);
+        const rentAmount = this.getListingRentAmount(listing);
         const agencyFee = this.getListingAgencyFee(listing);
-        const depositAmount = this.getListingDepositAmount(listing, amount);
+        const monthlyBaseAmount = rentAmount + agencyFee;
+        const depositAmount = this.getListingDepositAmount(listing, rentAmount);
         const currency = 'eur';
         const frequency = rental.paymentFrequencyMonths ?? 1;
         const duration = rental.durationMonths;
@@ -500,13 +502,13 @@ export class RentalService {
 
             return {
                 dueDate,
-                amount: isInitialPeriod ? agencyFee + depositAmount : amount,
+                amount: isInitialPeriod ? monthlyBaseAmount + depositAmount : monthlyBaseAmount,
             };
         });
 
         return {
             rentalId: rental._id.toString(),
-            amount,
+            amount: monthlyBaseAmount,
             currency,
             paymentFrequencyMonths: frequency,
             durationMonths: duration ?? undefined,
@@ -1385,14 +1387,6 @@ export class RentalService {
     }
 
     /**
-     * Agency fee is due on the initial billing period only.
-     */
-    private isAgencyFeeRequiredForPeriod(rental: RentalDocument, periodStart: Date): boolean {
-        const initialPeriodStart = this.getInitialBillingPeriodStart(rental);
-        return this.isSameBillingMonth(periodStart, initialPeriodStart);
-    }
-
-    /**
      * Deposit is required only for the initial billing period.
      */
     private isDepositRequiredForPeriod(rental: RentalDocument, periodStart: Date): boolean {
@@ -1413,17 +1407,11 @@ export class RentalService {
         const monthlyRent = this.getListingRentAmount(listing);
         const agencyFee = this.getListingAgencyFee(listing);
         const depositAmount = this.getListingDepositAmount(listing, monthlyRent);
-        const includeAgencyFee = this.isAgencyFeeRequiredForPeriod(rental, periodStart);
         const includeDeposit = this.isDepositRequiredForPeriod(rental, periodStart);
 
-        // Business rule: for a brand-new rental's first billing month, only agency fee + deposit are due.
-        // Rent starts from following billing month(s).
-        const rentCoveredMonths = includeAgencyFee || includeDeposit
-            ? Math.max(0, normalizedCoveredMonths - 1)
-            : normalizedCoveredMonths;
-
-        const rentAmount = monthlyRent * rentCoveredMonths;
-        const agencyFeeAmount = includeAgencyFee ? agencyFee : 0;
+        // Business rule: each billing month includes rent + agency fee; deposit remains one-time on initial period.
+        const rentAmount = monthlyRent * normalizedCoveredMonths;
+        const agencyFeeAmount = agencyFee * normalizedCoveredMonths;
         const depositDueAmount = includeDeposit ? depositAmount : 0;
 
         return {
@@ -1431,7 +1419,7 @@ export class RentalService {
             agencyFeeAmount,
             depositAmount: depositDueAmount,
             totalDue: rentAmount + agencyFeeAmount + depositDueAmount,
-            isInitialPaymentPeriod: includeAgencyFee || includeDeposit,
+            isInitialPaymentPeriod: includeDeposit,
             coveredMonths: normalizedCoveredMonths,
         };
     }
