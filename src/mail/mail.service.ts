@@ -110,4 +110,16 @@ export class MailService {
       html: `<p>${body}</p>`,
     });
   }
+
+  /**
+   * Generic email sending method
+   * Accepts to, subject, and HTML content
+   */
+  async sendMail(options: { to: string; subject: string; html: string }): Promise<void> {
+    await this.mailerService.sendMail({
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+    });
+  }
 }

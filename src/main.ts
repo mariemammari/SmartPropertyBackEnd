@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import * as dns from 'dns';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
@@ -51,6 +52,9 @@ async function bootstrap() {
       },
     }),
   );
+
+  // Enable global exception filter for detailed error responses
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // Setup Swagger documentation
   const config = new DocumentBuilder()

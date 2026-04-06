@@ -1,4 +1,4 @@
-import { IsBoolean, IsDate, IsMongoId, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsDate, IsMongoId, IsNumber, IsOptional, IsString, Min, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateRentalDto {
@@ -20,5 +20,6 @@ export class UpdateRentalDto {
     @IsNumber() @Min(0) @IsOptional() outstandingBalance?: number;
     @IsNumber() @Min(1) @IsOptional() paymentFrequencyMonths?: number;
 
+    @IsEnum(['pending', 'rented', 'ended', 'terminated']) @IsOptional() status?: string;
     @IsString() @IsOptional() notes?: string;
 }

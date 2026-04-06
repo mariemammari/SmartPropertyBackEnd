@@ -53,6 +53,9 @@ export class Rental {
     @Prop({ min: 1, default: 1 })
     paymentFrequencyMonths!: number;
 
+    @Prop({ enum: ['pending', 'rented', 'ended', 'terminated'], default: 'pending' })
+    status!: string;  // pending | rented | ended | terminated
+
     @Prop()
     notes?: string;
 
