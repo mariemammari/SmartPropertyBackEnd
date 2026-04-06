@@ -296,4 +296,36 @@ export class PropertyService {
     ]);
     return { total, forRent, forSale, available, rented, sold };
   }
+
+  /** Lightweight labels for voice navigation fuzzy matching (client assistant). */
+  async findVoiceCatalog(limit = 600): Promise<{ id: string; label: string }[]> {
+    const list = await this.propertyModel
+      .find({ status: { $nin: [PropertyStatus.INACTIVE] } })
+      .select('_id title description address city state neighborhood propertyType propertySubType type')
+      .limit(limit)
+      .lean()
+      .exec();
+
+    return list
+      .map((p: any) => {
+        const desc =
+          typeof p.description === 'string' && p.description.length > 0
+            ? p.description.slice(0, 160).replace(/\s+/g, ' ')
+            : '';
+        const parts = [
+          p.title,
+          desc,
+          p.address,
+          p.city,
+          p.state,
+          p.neighborhood,
+          p.propertyType,
+          p.propertySubType,
+          p.type,
+        ].filter(Boolean);
+        const label = parts.join(' ').trim();
+        return { id: String(p._id), label };
+      })
+      .filter((x) => x.label.length > 2);
+  }
 }
