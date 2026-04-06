@@ -23,7 +23,6 @@ import { FinanceModule } from './finance/finance.module';
 import { RentalModule } from './rental/rental.module';
 import { RentalChatModule } from './rental-chat/rental-chat.module';
 import { PropertyEngagementModule } from './property-engagement/property-engagement.module';
-//VERY MAILING IMPORT
 import { MailModule } from './mail/mail.module';
 import { PropertySubmissionModule } from './property-submission/property-submission.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
