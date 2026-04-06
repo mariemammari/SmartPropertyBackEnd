@@ -250,6 +250,11 @@ export class PropertyService {
       }
     }
 
+    if (dto.status === PropertyStatus.AVAILABLE && existing.status === PropertyStatus.RENTED) {
+      const terminatedCount = await this.rentalService.terminateActiveRentalsForProperty(property._id.toString());
+      console.log(`✅ [PropertyService.update] Terminated ${terminatedCount} active rental(s) for property:`, property._id);
+    }
+
     return property;
   }
 

@@ -8,6 +8,12 @@ export enum MessageVisibility {
     OWNER_ONLY = 'owner_only',       // only owner can see
 }
 
+export enum UserRole {
+    AGENT = 'agent',
+    TENANT = 'tenant',
+    OWNER = 'owner',
+}
+
 export type RentalMessageDocument = RentalMessage & Document;
 
 @Schema({ timestamps: true, collection: 'rental_messages' })
@@ -29,6 +35,9 @@ export class RentalMessage {
 
     @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
     visibleToUsers?: Types.ObjectId[];  // explicit list of user IDs who can see this
+
+    @Prop({ enum: UserRole, required: true })
+    senderRole!: UserRole;  // role of the person who sent this message (agent/tenant/owner)
 
     @Prop()
     createdAt?: Date;

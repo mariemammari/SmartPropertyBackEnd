@@ -43,6 +43,7 @@ export enum PropertyCondition {
 export enum PropertyStatus {
   AVAILABLE = 'available',
   RENTED = 'rented',
+  RENTAL_ENDED = 'rental_ended',  // Property lease ended, awaiting readiness confirmation
   SOLD = 'sold',
   INACTIVE = 'inactive',
 }
@@ -73,6 +74,12 @@ export class Property {
   // ─── Status ──────────────────────────────────────────────────
   @Prop({ default: PropertyStatus.AVAILABLE, enum: PropertyStatus })
   status!: string;
+
+  @Prop({ type: [Types.ObjectId], ref: 'Invoice', default: [] })
+  invoiceIds?: Types.ObjectId[];
+
+  @Prop({ type: Types.ObjectId, ref: 'Invoice' })
+  latestInvoiceId?: Types.ObjectId;
 
   // ─── Pricing ─────────────────────────────────────────────────
   @Prop({ required: true, min: 0 })
