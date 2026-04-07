@@ -918,12 +918,23 @@ export class RentalService {
     dto: CreateOfflinePaymentDto,
     requester: AuthenticatedUserContext,
   ): Promise<RentalPayment> {
-    const accountant = await this.resolveAccountantContext(requester);
+    const userRole = requester.role;
+    let accountantId: string | undefined = undefined;
 
     const rental = await this.rentalModel.findById(rentalId).exec();
     if (!rental) throw new NotFoundException('Rental not found');
 
-    await this.assertAccountantCanAccessRental(rental, requester);
+    if (userRole === UserRole.ACCOUNTANT) {
+      const accountant = await this.resolveAccountantContext(requester);
+      await this.assertAccountantCanAccessRental(rental, requester);
+      accountantId = String(accountant._id);
+    } else if (userRole === UserRole.SUPER_ADMIN) {
+      accountantId = requester.userId;
+    } else {
+      if (!this.isParticipantUser(rental, requester.userId)) {
+        throw new ForbiddenException('You do not have permission to access this rental');
+      }
+    }
 
     const listing = await this.listingModel
       .findById(rental.propertyListingId)
@@ -998,16 +1009,16 @@ export class RentalService {
       trancheNumber: 1,
     });
 
-    if (isCash) {
+    if (isCash && accountantId) {
       payment.status = RentalPaymentStatus.SUCCEEDED;
-      payment.verifiedBy = new Types.ObjectId(String(accountant._id));
+      payment.verifiedBy = new Types.ObjectId(accountantId);
       payment.verifiedAt = new Date();
       payment.paidAt = new Date();
 
       const invoiceId = await this.ensureInvoiceForSucceededPayment(
         rental,
         payment,
-        String(accountant._id),
+        accountantId,
         dto.rentalContractId,
       );
       payment.invoiceId = new Types.ObjectId(invoiceId);
@@ -1030,7 +1041,11 @@ export class RentalService {
     dto: VerifyOfflinePaymentDto,
     requester: AuthenticatedUserContext,
   ): Promise<RentalPayment> {
-    const accountant = await this.resolveAccountantContext(requester);
+    let accountantId = requester.userId;
+    if (requester.role === UserRole.ACCOUNTANT) {
+      const accountant = await this.resolveAccountantContext(requester);
+      accountantId = String(accountant._id);
+    }
 
     const payment = await this.rentalPaymentModel.findById(paymentId).exec();
     if (!payment) throw new NotFoundException('Payment not found');
@@ -1052,10 +1067,12 @@ export class RentalService {
     const rental = await this.rentalModel.findById(payment.rentalId).exec();
     if (!rental) throw new NotFoundException('Rental not found');
 
-    await this.assertAccountantCanAccessRental(rental, requester);
+    if (requester.role === UserRole.ACCOUNTANT) {
+      await this.assertAccountantCanAccessRental(rental, requester);
+    }
 
     payment.status = RentalPaymentStatus.SUCCEEDED;
-    payment.verifiedBy = new Types.ObjectId(String(accountant._id));
+    payment.verifiedBy = new Types.ObjectId(accountantId);
     payment.verifiedAt = new Date();
     payment.paidAt = new Date();
     payment.paymentMethodNote =
@@ -1064,7 +1081,7 @@ export class RentalService {
     const invoiceId = await this.ensureInvoiceForSucceededPayment(
       rental,
       payment,
-      String(accountant._id),
+      accountantId,
       dto.rentalContractId,
     );
     payment.invoiceId = new Types.ObjectId(invoiceId);
@@ -1090,7 +1107,11 @@ export class RentalService {
       throw new BadRequestException('Payment validation was not approved');
     }
 
-    const accountant = await this.resolveAccountantContext(requester);
+    let accountantId = requester.userId;
+    if (requester.role === UserRole.ACCOUNTANT) {
+      const accountant = await this.resolveAccountantContext(requester);
+      accountantId = String(accountant._id);
+    }
 
     const payment = await this.rentalPaymentModel.findById(paymentId).exec();
     if (!payment) throw new NotFoundException('Payment not found');
@@ -1101,7 +1122,9 @@ export class RentalService {
     const rental = await this.rentalModel.findById(payment.rentalId).exec();
     if (!rental) throw new NotFoundException('Rental not found');
 
-    await this.assertAccountantCanAccessRental(rental, requester);
+    if (requester.role === UserRole.ACCOUNTANT) {
+      await this.assertAccountantCanAccessRental(rental, requester);
+    }
 
     if (
       ![RentalPaymentStatus.SUCCEEDED, RentalPaymentStatus.VERIFIED].includes(
@@ -1117,14 +1140,14 @@ export class RentalService {
       const invoiceId = await this.ensureInvoiceForSucceededPayment(
         rental,
         payment,
-        String(accountant._id),
+        accountantId,
         dto.rentalContractId,
       );
       payment.invoiceId = new Types.ObjectId(invoiceId);
     }
 
     payment.status = RentalPaymentStatus.SUCCEEDED;
-    payment.verifiedBy = new Types.ObjectId(String(accountant._id));
+    payment.verifiedBy = new Types.ObjectId(accountantId);
     payment.verifiedAt = new Date();
     payment.paymentMethodNote =
       dto.paymentMethodNote ?? payment.paymentMethodNote;

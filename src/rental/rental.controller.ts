@@ -106,7 +106,7 @@ export class RentalController {
    */
   @Post(':id/payments/offline')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ACCOUNTANT)
+  @Roles(UserRole.ACCOUNTANT, UserRole.SUPER_ADMIN, UserRole.CLIENT)
   createOfflinePayment(
     @Param('id') rentalId: string,
     @Body() dto: CreateOfflinePaymentDto,
@@ -120,7 +120,7 @@ export class RentalController {
    */
   @Patch(':id/payments/:paymentId/verify')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ACCOUNTANT)
+  @Roles(UserRole.ACCOUNTANT, UserRole.SUPER_ADMIN)
   verifyOfflinePayment(
     @Param('id') rentalId: string,
     @Param('paymentId') paymentId: string,
@@ -140,7 +140,7 @@ export class RentalController {
    */
   @Patch(':id/payments/:paymentId/validate')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ACCOUNTANT)
+  @Roles(UserRole.ACCOUNTANT, UserRole.SUPER_ADMIN)
   validateSucceededPayment(
     @Param('id') rentalId: string,
     @Param('paymentId') paymentId: string,
@@ -206,7 +206,7 @@ export class RentalController {
    */
   @Get('accountant/active-rentals')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ACCOUNTANT)
+  @Roles(UserRole.ACCOUNTANT, UserRole.SUPER_ADMIN)
   getActiveRentalsForAccountant(@Req() req: any) {
     return this.rentalService.getActiveRentalsForAccountant(req.user);
   }
@@ -216,7 +216,7 @@ export class RentalController {
    */
   @Get('accountant/active-rentals/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ACCOUNTANT)
+  @Roles(UserRole.ACCOUNTANT, UserRole.SUPER_ADMIN)
   getAccountantRentalDetail(@Param('id') rentalId: string, @Req() req: any) {
     return this.rentalService.getAccountantRentalDetail(rentalId, req.user);
   }
