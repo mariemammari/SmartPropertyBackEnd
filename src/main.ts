@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import * as dns from 'dns';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
@@ -23,6 +24,9 @@ dns.setServers(['8.8.8.8', '1.1.1.1']);
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Stripe webhook requires raw body for signature verification.
+  app.use('/rentals/webhook/stripe', express.raw({ type: 'application/json' }));
+
   // Increase request body limit to 50MB for photo uploads
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -42,13 +46,15 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
       transform: true,
       transformOptions: {
         enableImplicitConversion: true,
       },
     }),
   );
+
+  // Enable global exception filter for detailed error responses
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // Setup Swagger documentation
   const config = new DocumentBuilder()

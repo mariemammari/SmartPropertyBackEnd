@@ -11,12 +11,14 @@ import {
   UpdatePropertyListingDto,
   ListingFilterDto,
 } from '../property-listing/dto/Property-listing.dto';
+import { RentalService } from '../rental/rental.service';
 
 @Injectable()
 export class PropertyListingService {
   constructor(
     @InjectModel(PropertyListing.name)
     private listingModel: Model<PropertyListingDocument>,
+    private readonly rentalService: RentalService,
   ) { }
 
   // ── Create ────────────────────────────────────────────────────────────────
@@ -86,6 +88,17 @@ export class PropertyListingService {
       .exec();
   }
 
+  // ── Find by Branch (all listings for one branch) ────────────────────────
+  async findByBranch(branchId: string): Promise<PropertyListing[]> {
+    return this.listingModel
+      .find({ branchId: new Types.ObjectId(branchId) })
+      .populate('propertyId', 'propertyType propertySubType city state size bedrooms bathrooms')
+      .populate('agentId', 'name email')
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
   // ── Find Active Listing for a Property ───────────────────────────────────
   async findActiveListing(propertyId: string): Promise<PropertyListing | null> {
     return this.listingModel
@@ -132,7 +145,17 @@ export class PropertyListingService {
 
   // ── Update ────────────────────────────────────────────────────────────────
   async update(id: string, dto: UpdatePropertyListingDto): Promise<PropertyListing> {
-    const update: any = { ...dto };
+    const existing = await this.listingModel.findById(id).exec();
+    if (!existing) throw new NotFoundException(`Listing ${id} not found`);
+
+    // Extract rental trigger fields before applying update to listing
+    const {
+      tenantId, durationMonths, paymentFrequencyMonths,
+      autoRenew, noticePeriodDays, contractSignedAt, moveInDate, moveOutDate, notes,
+      ...listingUpdate
+    } = dto;
+
+    const update: any = { ...listingUpdate };
 
     if (dto.agentId) update.agentId = new Types.ObjectId(dto.agentId);
     if (dto.branchId) update.branchId = new Types.ObjectId(dto.branchId);
@@ -151,6 +174,22 @@ export class PropertyListingService {
       .findByIdAndUpdate(id, update, { new: true })
       .exec();
     if (!listing) throw new NotFoundException(`Listing ${id} not found`);
+
+    if (dto.status === ListingStatus.RENTED && existing.status !== ListingStatus.RENTED) {
+      await this.rentalService.createFromListingStatusChange(listing._id.toString(), {
+        propertyId: listing.propertyId.toString(),
+        tenantId,
+        durationMonths,
+        paymentFrequencyMonths,
+        autoRenew,
+        noticePeriodDays,
+        contractSignedAt,
+        moveInDate,
+        moveOutDate,
+        notes,
+      });
+    }
+
     return listing;
   }
 

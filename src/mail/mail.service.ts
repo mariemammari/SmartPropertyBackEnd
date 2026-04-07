@@ -3,7 +3,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class MailService {
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(private readonly mailerService: MailerService) { }
 
   async sendPropertyInquiryEmail(
     to: string,
@@ -20,7 +20,7 @@ export class MailService {
     console.log('📧 [MailService] To:', to);
     console.log('📧 [MailService] Agent:', agentName);
     console.log('📧 [MailService] Property:', propertyTitle);
-    
+
     try {
       const result = await this.mailerService.sendMail({
         to,
@@ -80,7 +80,7 @@ export class MailService {
         </div>
       `,
       });
-      
+
       console.log('✅ [MailService] Email sent successfully!');
       console.log('✅ [MailService] Result:', result);
     } catch (error) {
@@ -100,6 +100,26 @@ export class MailService {
       to,
       subject: 'Test Email from SmartProperty',
       html: '<h1>Test Email</h1><p>This is a test email from SmartProperty.</p>',
+    });
+  }
+
+  async sendRentalPaymentEmail(to: string, subject: string, body: string): Promise<void> {
+    await this.mailerService.sendMail({
+      to,
+      subject,
+      html: `<p>${body}</p>`,
+    });
+  }
+
+  /**
+   * Generic email sending method
+   * Accepts to, subject, and HTML content
+   */
+  async sendMail(options: { to: string; subject: string; html: string }): Promise<void> {
+    await this.mailerService.sendMail({
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
     });
   }
 }

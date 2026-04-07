@@ -15,7 +15,7 @@ import { v2 as cloudinary } from 'cloudinary';
 export class ApplicationService {
   constructor(
     @InjectModel(Application.name) private applicationModel: Model<ApplicationDocument>,
-  ) {}
+  ) { }
 
   async create(createDto: CreateApplicationDto): Promise<Application> {
     const blockedReapplication = await this.applicationModel.findOne({
@@ -132,5 +132,35 @@ export class ApplicationService {
 
     if (!updated) throw new NotFoundException('Application not found');
     return updated;
+  }
+  async findAllByProperty(propertyId: string): Promise<Application[]> {
+    return this.applicationModel
+      .find({ propertyId })
+      .populate('clientId', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async findAllByBranch(branchId: string): Promise<Application[]> {
+    const apps = await this.applicationModel
+      .find({})
+      .populate({
+        path: 'propertyId',
+        match: { branchId },
+        select: 'title propertyType propertySubType price type city state size address location image images branchId',
+      })
+      .populate('clientId', 'name email phone')
+      .populate('agentId', 'name email phone')
+      .exec();
+
+    // Filter out applications whose properties don't match the branchId
+    const filteredApps = apps.filter((app) => app.propertyId !== null);
+
+    // Sort by creation date (descending)
+    return filteredApps.sort((a, b) => {
+      const aTime = (a as any).createdAt instanceof Date ? (a as any).createdAt.getTime() : 0;
+      const bTime = (b as any).createdAt instanceof Date ? (b as any).createdAt.getTime() : 0;
+      return bTime - aTime;
+    });
   }
 }

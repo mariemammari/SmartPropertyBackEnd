@@ -7,7 +7,7 @@ import { memoryStorage } from 'multer';
 
 @Controller('application')
 export class ApplicationController {
-  constructor(private readonly applicationService: ApplicationService) {}
+  constructor(private readonly applicationService: ApplicationService) { }
 
   @Post()
   async createApplication(@Body() createDto: CreateApplicationDto) {
@@ -32,6 +32,11 @@ export class ApplicationController {
     return this.applicationService.findAllByAgent(agentId);
   }
 
+  @Get('branch/:branchId')
+  async getApplicationsByBranch(@Param('branchId') branchId: string) {
+    return this.applicationService.findAllByBranch(branchId);
+  }
+
   @Get('client/:clientId')
   async getClientApplications(@Param('clientId') clientId: string) {
     return this.applicationService.findAllByClient(clientId);
@@ -53,5 +58,10 @@ export class ApplicationController {
   @Patch(':id/status')
   async updateStatus(@Param('id') id: string, @Body() updateDto: UpdateApplicationDto) {
     return this.applicationService.updateStatus(id, updateDto);
+  }
+
+  @Get("property/:propertyId/")
+  async getApplicationsForProperty(@Param('propertyId') propertyId: string) {
+    return this.applicationService.findAllByProperty(propertyId);
   }
 }

@@ -214,6 +214,18 @@ export class UpdatePropertyDto {
   @IsNumber() @IsOptional() lat?: number;
   @IsNumber() @IsOptional() lng?: number;
 
+  // ─── Rental trigger fields ─────────────────────────────────────────
+  @IsMongoId() @IsOptional() tenantId?: string;
+  @IsMongoId() @IsOptional() propertyListingId?: string;
+  @IsNumber() @Min(1) @IsOptional() durationMonths?: number;
+  @IsNumber() @Min(1) @IsOptional() paymentFrequencyMonths?: number;
+  @IsBoolean() @IsOptional() autoRenew?: boolean;
+  @IsNumber() @Min(0) @IsOptional() noticePeriodDays?: number;
+  @IsDate() @IsOptional() @Type(() => Date) contractSignedAt?: Date;
+  @IsDate() @IsOptional() @Type(() => Date) moveInDate?: Date;
+  @IsDate() @IsOptional() @Type(() => Date) moveOutDate?: Date;
+  @IsString() @IsOptional() notes?: string;
+
   // ─── Custom Fields ───────────────────────────────────────────
   @IsObject()
   @IsOptional()

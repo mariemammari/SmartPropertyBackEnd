@@ -240,16 +240,18 @@ export class NearbyService {
       );
       out center;
     `;
+        const body = `data=${encodeURIComponent(overpassQuery)}`;
 
         try {
             const response = await fetch('https://overpass-api.de/api/interpreter', {
                 method: 'POST',
-                body: overpassQuery,
+                body,
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             });
 
             if (!response.ok) {
-                throw new Error(`Overpass API error: ${response.statusText}`);
+                const errorText = await response.text();
+                throw new Error(`Overpass API error: ${response.status} ${response.statusText} - ${errorText}`);
             }
 
             const data = await response.json();

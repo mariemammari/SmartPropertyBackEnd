@@ -1,4 +1,4 @@
-﻿import { IsString, IsOptional, IsNumber, IsNotEmpty } from 'class-validator';
+﻿import { IsString, IsOptional, IsNumber, IsNotEmpty, IsBoolean, IsDateString } from 'class-validator';
 
 export class CreateApplicationDto {
   @IsString()
@@ -37,9 +37,53 @@ export class CreateApplicationDto {
   @IsOptional()
   occupation?: string;
 
+  @IsString()
+  @IsOptional()
+  employmentStatus?: string;
+
+  @IsString()
+  @IsOptional()
+  employerName?: string;
+
+  @IsString()
+  @IsOptional()
+  financialSupportDetails?: string;
+
+  @IsString()
+  @IsOptional()
+  studentCardNumber?: string;
+
   @IsNumber()
   @IsOptional()
   monthlyIncome?: number;
+
+  @IsDateString()
+  @IsOptional()
+  preferredMoveInDate?: string;
+
+  @IsNumber()
+  @IsOptional()
+  leaseDurationMonths?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  hasPets?: boolean;
+
+  @IsString()
+  @IsOptional()
+  petsDetails?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  hasGuarantor?: boolean;
+
+  @IsString()
+  @IsOptional()
+  guarantorName?: string;
+
+  @IsString()
+  @IsOptional()
+  guarantorPhone?: string;
 
   @IsString()
   @IsOptional()

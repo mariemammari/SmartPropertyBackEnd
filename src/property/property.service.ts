@@ -2,8 +2,10 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Property, PropertyDocument } from '../property/schemas/property.schema';
+import { Property, PropertyDocument, PropertyStatus } from '../property/schemas/property.schema';
 import { PropertyListing, PropertyListingDocument } from '../property-listing/schemas/property-listing.schema';
+import { User, UserDocument } from '../user/schemas/user.schema';
+import { RentalService } from '../rental/rental.service';
 import { CreatePropertyDto, UpdatePropertyDto, PropertyFilterDto } from '../property/dto/create-property.dto';
 
 @Injectable()
@@ -11,6 +13,8 @@ export class PropertyService {
   constructor(
     @InjectModel(Property.name) private propertyModel: Model<PropertyDocument>,
     @InjectModel(PropertyListing.name) private listingModel: Model<PropertyListingDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly rentalService: RentalService,
   ) { }
 
   // ── Create ────────────────────────────────────────────────────────────────
@@ -131,9 +135,85 @@ export class PropertyService {
       .exec();
   }
 
+  // ── Find Rented by Owner ─────────────────────────────────────────────────
+  async findRentedByOwner(ownerId: string): Promise<Property[]> {
+    console.log(`🔍 [findRentedByOwner] Searching for rented properties with ownerId: ${ownerId}`);
+
+    const result = await this.propertyModel
+      .find({
+        ownerId: new Types.ObjectId(ownerId),
+        status: PropertyStatus.RENTED
+      })
+      .populate('ownerId', 'name email phone')
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    console.log(`✅ [findRentedByOwner] Found ${result.length} rented properties`);
+    return result;
+  }
+
+  // ── Find Rented by Branch ─────────────────────────────────────────────────
+  async findRentedByBranch(branchId: string): Promise<Property[]> {
+    console.log(`🔍 [findRentedByBranch] Searching for rented properties with branchId: ${branchId}`);
+
+    const usersInBranch = await this.userModel
+      .find({ branchId: branchId.toString() })
+      .select('_id')
+      .lean()
+      .exec();
+    const creatorIds = usersInBranch.map((u: any) => u._id);
+
+    // Return rented properties linked to branch either directly on property or via creator's branch.
+    const result = await this.propertyModel
+      .find({
+        status: PropertyStatus.RENTED,
+        $or: [
+          { branchId: branchId.toString() },
+          ...(creatorIds.length > 0 ? [{ createdBy: { $in: creatorIds } }] : []),
+        ],
+      })
+      .populate('ownerId', 'name email phone')
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    console.log(`✅ [findRentedByBranch] Found ${result.length} rented properties`);
+    return result;
+  }
+
+  // ── Find Rented by Agent ──────────────────────────────────────────────────
+  async findRentedByAgent(agentId: string): Promise<Property[]> {
+    console.log(`🔍 [findRentedByAgent] Searching for rented properties with agentId: ${agentId}`);
+
+    // Now filter for rented only using enum
+    const result = await this.propertyModel
+      .find({
+        createdBy: new Types.ObjectId(agentId),
+        status: PropertyStatus.RENTED
+      })
+      .populate('ownerId', 'name email phone')
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    console.log(`✅ [findRentedByAgent] Found ${result.length} rented properties`);
+    return result;
+  }
+
   // ── Update ────────────────────────────────────────────────────────────────
   async update(id: string, dto: UpdatePropertyDto): Promise<Property> {
-    const update: any = { ...dto };
+    const existing = await this.propertyModel.findById(id).exec();
+    if (!existing) throw new NotFoundException(`Property ${id} not found`);
+
+    // Extract rental trigger fields before applying update to property
+    const {
+      tenantId, propertyListingId, durationMonths, paymentFrequencyMonths,
+      autoRenew, noticePeriodDays, contractSignedAt, moveInDate, moveOutDate, notes,
+      ...propertyUpdate
+    } = dto;
+
+    const update: any = { ...propertyUpdate };
 
     // Re-sync GeoJSON if lat/lng updated
     if (Number.isFinite(dto.lat) && Number.isFinite(dto.lng)) {
@@ -146,6 +226,35 @@ export class PropertyService {
       .findByIdAndUpdate(id, update, { new: true })
       .exec();
     if (!property) throw new NotFoundException(`Property ${id} not found`);
+
+    if (dto.status === PropertyStatus.RENTED && existing.status !== PropertyStatus.RENTED) {
+      console.log(`🔷 [PropertyService.update] Status changed to RENTED. Creating rental for property:`, property._id);
+      try {
+        await this.rentalService.createFromPropertyStatusChange({
+          propertyId: property._id.toString(),
+          propertyListingId,
+          tenantId,
+          durationMonths,
+          paymentFrequencyMonths,
+          autoRenew,
+          noticePeriodDays,
+          contractSignedAt,
+          moveInDate,
+          moveOutDate,
+          notes,
+        });
+        console.log(`✅ [PropertyService.update] Rental created successfully for property:`, property._id);
+      } catch (error: any) {
+        console.log(`❌ [PropertyService.update] Failed to create rental:`, error.message);
+        throw error;
+      }
+    }
+
+    if (dto.status === PropertyStatus.AVAILABLE && existing.status === PropertyStatus.RENTED) {
+      const terminatedCount = await this.rentalService.terminateActiveRentalsForProperty(property._id.toString());
+      console.log(`✅ [PropertyService.update] Terminated ${terminatedCount} active rental(s) for property:`, property._id);
+    }
+
     return property;
   }
 
@@ -191,5 +300,37 @@ export class PropertyService {
       this.propertyModel.countDocuments({ status: 'sold' }),
     ]);
     return { total, forRent, forSale, available, rented, sold };
+  }
+
+  /** Lightweight labels for voice navigation fuzzy matching (client assistant). */
+  async findVoiceCatalog(limit = 600): Promise<{ id: string; label: string }[]> {
+    const list = await this.propertyModel
+      .find({ status: { $nin: [PropertyStatus.INACTIVE] } })
+      .select('_id title description address city state neighborhood propertyType propertySubType type')
+      .limit(limit)
+      .lean()
+      .exec();
+
+    return list
+      .map((p: any) => {
+        const desc =
+          typeof p.description === 'string' && p.description.length > 0
+            ? p.description.slice(0, 160).replace(/\s+/g, ' ')
+            : '';
+        const parts = [
+          p.title,
+          desc,
+          p.address,
+          p.city,
+          p.state,
+          p.neighborhood,
+          p.propertyType,
+          p.propertySubType,
+          p.type,
+        ].filter(Boolean);
+        const label = parts.join(' ').trim();
+        return { id: String(p._id), label };
+      })
+      .filter((x) => x.label.length > 2);
   }
 }

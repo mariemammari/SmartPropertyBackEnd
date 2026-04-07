@@ -47,7 +47,7 @@ export class AiController {
     try {
       const result = await this.aiService.interpretNavigationCommand(
         transcript,
-        role || 'client',
+        role || 'guest',
         currentPath || '/',
       );
       return result;

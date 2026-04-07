@@ -259,7 +259,7 @@ export class PropertySubmissionService {
     const total = await this.listingModel.countDocuments(query);
     const data = await this.listingModel
       .find(query)
-.populate('propertyId', 'propertyType propertySubType city bedrooms bathrooms size')
+      .populate('propertyId', 'title propertyType propertySubType city state neighborhood address bedrooms bathrooms size')
       .populate('ownerId', 'fullName email phone')
       .populate('createdBy', 'fullName email')
       .sort({ assignedAt: -1 })
