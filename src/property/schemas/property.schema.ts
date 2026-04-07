@@ -160,6 +160,10 @@ export class Property {
     default: [],
   })
   images!: { data: string; mimetype: string; name: string }[];
+
+  // ─── 3D Photo ────────────────────────────────────────────────
+  @Prop({ type: String, default: null })
+  photo3D?: string | null;
 }
 
 export const PropertySchema = SchemaFactory.createForClass(Property);
