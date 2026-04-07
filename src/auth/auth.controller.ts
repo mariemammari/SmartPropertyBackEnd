@@ -1,4 +1,14 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Get, Request, Res } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Get,
+  Request,
+  Res,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { SignUpDto } from '../user/dto/signup.dto';
@@ -43,7 +53,10 @@ export class AuthController {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-    console.log('Forgot password request received for:', forgotPasswordDto.email);
+    console.log(
+      'Forgot password request received for:',
+      forgotPasswordDto.email,
+    );
     return this.authService.forgotPassword(forgotPasswordDto);
   }
 
@@ -63,9 +76,14 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Request() req, @Res() res) {
-    const result = await this.authService.validateOAuthLogin(req.user, 'google');
+    const result = await this.authService.validateOAuthLogin(
+      req.user,
+      'google',
+    );
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    return res.redirect(`${frontendUrl}/oauth/callback?token=${result.access_token}&user=${encodeURIComponent(JSON.stringify(result.user))}`);
+    return res.redirect(
+      `${frontendUrl}/oauth/callback?token=${result.access_token}&user=${encodeURIComponent(JSON.stringify(result.user))}`,
+    );
   }
 
   @Get('facebook')
@@ -77,9 +95,14 @@ export class AuthController {
   @Get('facebook/callback')
   @UseGuards(AuthGuard('facebook'))
   async facebookAuthRedirect(@Request() req, @Res() res) {
-    const result = await this.authService.validateOAuthLogin(req.user, 'facebook');
+    const result = await this.authService.validateOAuthLogin(
+      req.user,
+      'facebook',
+    );
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    return res.redirect(`${frontendUrl}/oauth/callback?token=${result.access_token}&user=${encodeURIComponent(JSON.stringify(result.user))}`);
+    return res.redirect(
+      `${frontendUrl}/oauth/callback?token=${result.access_token}&user=${encodeURIComponent(JSON.stringify(result.user))}`,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -97,4 +120,3 @@ export class AuthController {
     };
   }
 }
-

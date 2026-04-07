@@ -1,6 +1,14 @@
 import {
-  Controller, Get, Post, Patch, Delete,
-  Param, Body, Query, HttpCode, HttpStatus,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Query,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { PropertyListingService } from './property-listing.service';
 import {
@@ -11,7 +19,7 @@ import {
 
 @Controller('property-listings')
 export class PropertyListingController {
-  constructor(private readonly listingService: PropertyListingService) { }
+  constructor(private readonly listingService: PropertyListingService) {}
 
   @Post()
   create(@Body() dto: CreatePropertyListingDto) {

@@ -15,8 +15,10 @@ export class VisitsService {
       ...dto,
       propertyId: new Types.ObjectId(dto.propertyId),
       agentId: dto.agentId ? new Types.ObjectId(dto.agentId) : undefined,
-      requestedSlots: dto.requestedSlots?.map(s => new Date(s)) ?? [],
-      confirmedSlot: dto.confirmedSlot ? new Date(dto.confirmedSlot) : undefined,
+      requestedSlots: dto.requestedSlots?.map((s) => new Date(s)) ?? [],
+      confirmedSlot: dto.confirmedSlot
+        ? new Date(dto.confirmedSlot)
+        : undefined,
     });
     return visit.save();
   }
@@ -84,8 +86,9 @@ export class VisitsService {
 
   async update(id: string, dto: UpdateVisitDto): Promise<Visit> {
     const update: any = { ...dto };
-    if (dto.requestedSlots) update.requestedSlots = dto.requestedSlots.map(s => new Date(s));
-    if (dto.confirmedSlot)  update.confirmedSlot  = new Date(dto.confirmedSlot);
+    if (dto.requestedSlots)
+      update.requestedSlots = dto.requestedSlots.map((s) => new Date(s));
+    if (dto.confirmedSlot) update.confirmedSlot = new Date(dto.confirmedSlot);
 
     const visit = await this.visitModel
       .findByIdAndUpdate(id, update, { new: true })
@@ -102,22 +105,48 @@ export class VisitsService {
   async getStats(): Promise<any> {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const next7Days    = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    const todayStart   = new Date(); todayStart.setHours(0,0,0,0);
-    const todayEnd     = new Date(); todayEnd.setHours(23,59,59,999);
+    const next7Days = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
 
-    const [pending, confirmed7, today, completedMonth, noShow] = await Promise.all([
-      this.visitModel.countDocuments({ status: { $in: [VisitStatus.REQUESTED, VisitStatus.PROPOSED] } }),
-      this.visitModel.countDocuments({ status: VisitStatus.CONFIRMED, confirmedSlot: { $lte: next7Days } }),
-      this.visitModel.countDocuments({ status: VisitStatus.CONFIRMED, confirmedSlot: { $gte: todayStart, $lte: todayEnd } }),
-      this.visitModel.countDocuments({ status: VisitStatus.COMPLETED, updatedAt: { $gte: startOfMonth } }),
-      this.visitModel.countDocuments({ status: VisitStatus.NO_SHOW,   updatedAt: { $gte: startOfMonth } }),
-    ]);
+    const [pending, confirmed7, today, completedMonth, noShow] =
+      await Promise.all([
+        this.visitModel.countDocuments({
+          status: { $in: [VisitStatus.REQUESTED, VisitStatus.PROPOSED] },
+        }),
+        this.visitModel.countDocuments({
+          status: VisitStatus.CONFIRMED,
+          confirmedSlot: { $lte: next7Days },
+        }),
+        this.visitModel.countDocuments({
+          status: VisitStatus.CONFIRMED,
+          confirmedSlot: { $gte: todayStart, $lte: todayEnd },
+        }),
+        this.visitModel.countDocuments({
+          status: VisitStatus.COMPLETED,
+          updatedAt: { $gte: startOfMonth },
+        }),
+        this.visitModel.countDocuments({
+          status: VisitStatus.NO_SHOW,
+          updatedAt: { $gte: startOfMonth },
+        }),
+      ]);
 
-    const totalClosed   = completedMonth + noShow;
-    const noShowRate    = totalClosed > 0 ? Math.round((noShow / totalClosed) * 100) : 0;
-    const conversionRate = totalClosed > 0 ? Math.round((completedMonth / totalClosed) * 100) : 0;
+    const totalClosed = completedMonth + noShow;
+    const noShowRate =
+      totalClosed > 0 ? Math.round((noShow / totalClosed) * 100) : 0;
+    const conversionRate =
+      totalClosed > 0 ? Math.round((completedMonth / totalClosed) * 100) : 0;
 
-    return { pending, confirmed7, today, completedMonth, noShowRate, conversionRate };
+    return {
+      pending,
+      confirmed7,
+      today,
+      completedMonth,
+      noShowRate,
+      conversionRate,
+    };
   }
 }

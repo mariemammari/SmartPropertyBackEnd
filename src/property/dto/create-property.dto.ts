@@ -61,14 +61,26 @@ export class CreatePropertyDto {
  */
 
 import {
-  IsString, IsEnum, IsOptional, IsNumber,
-  IsBoolean, IsMongoId, IsDate, Min, Max,
-  ValidateNested, IsObject, IsNotEmpty,
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsNumber,
+  IsBoolean,
+  IsMongoId,
+  IsDate,
+  Min,
+  Max,
+  ValidateNested,
+  IsObject,
+  IsNotEmpty,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import {
-  TransactionType, PropertyType, PropertySubType,
-  PropertyCondition, PropertyStatus,
+  TransactionType,
+  PropertyType,
+  PropertySubType,
+  PropertyCondition,
+  PropertyStatus,
 } from '../schemas/property.schema';
 
 export class CreatePropertyDto {
@@ -126,7 +138,9 @@ export class CreatePropertyDto {
   status?: PropertyStatus;
   @IsNumber() @Min(1800) @Max(2100) @IsOptional() yearBuilt?: number;
 
-  @IsDate() @IsOptional() @Type(() => Date)
+  @IsDate()
+  @IsOptional()
+  @Type(() => Date)
   availableFrom?: Date;
 
   // ─── Amenities ───────────────────────────────────────────────
@@ -249,10 +263,22 @@ export class PropertyFilterDto {
   @IsNumber() @Min(0) @IsOptional() @Type(() => Number) bedrooms?: number;
   @IsNumber() @Min(0) @IsOptional() @Type(() => Number) bathrooms?: number;
 
-  @IsBoolean() @IsOptional() @Transform(({ value }) => value === true || value === 'true') hasParking?: boolean;
-  @IsBoolean() @IsOptional() @Transform(({ value }) => value === true || value === 'true') hasElevator?: boolean;
-  @IsBoolean() @IsOptional() @Transform(({ value }) => value === true || value === 'true') hasPool?: boolean;
-  @IsBoolean() @IsOptional() @Transform(({ value }) => value === true || value === 'true') hasAirConditioning?: boolean;
+  @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  hasParking?: boolean;
+  @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  hasElevator?: boolean;
+  @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  hasPool?: boolean;
+  @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  hasAirConditioning?: boolean;
 
   @IsNumber() @IsOptional() @Type(() => Number) page?: number;
   @IsNumber() @IsOptional() @Type(() => Number) limit?: number;

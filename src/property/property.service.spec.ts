@@ -116,7 +116,12 @@ describe('PropertyService', () => {
 
     expect(chain.skip).toHaveBeenCalledWith(5);
     expect(chain.limit).toHaveBeenCalledWith(5);
-    expect(result).toEqual({ data: [{ _id: 'p1' }], total: 10, page: 2, pages: 2 });
+    expect(result).toEqual({
+      data: [{ _id: 'p1' }],
+      total: 10,
+      page: 2,
+      pages: 2,
+    });
   });
 
   it('findOne: should throw when property does not exist', async () => {
@@ -126,7 +131,9 @@ describe('PropertyService', () => {
     };
     propertyModelMock.findById.mockReturnValueOnce(chain);
 
-    await expect(service.findOne('missing-id')).rejects.toThrow(NotFoundException);
+    await expect(service.findOne('missing-id')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('update: should unset location when only one coordinate is provided', async () => {
@@ -151,7 +158,9 @@ describe('PropertyService', () => {
       exec: jest.fn().mockResolvedValueOnce(null),
     });
 
-    await expect(service.remove('missing-id')).rejects.toThrow(NotFoundException);
+    await expect(service.remove('missing-id')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('getStats: should aggregate all counters', async () => {

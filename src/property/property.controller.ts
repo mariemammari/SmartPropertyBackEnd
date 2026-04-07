@@ -80,19 +80,32 @@ export class PropertyController {
 }
  */
 import {
-  Controller, Get, Post, Patch, Delete,
-  Param, Body, Query, HttpCode, HttpStatus,
-  UseGuards, Request,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Query,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PropertyService } from './property.service';
-import { CreatePropertyDto, UpdatePropertyDto, PropertyFilterDto } from './dto/create-property.dto';
+import {
+  CreatePropertyDto,
+  UpdatePropertyDto,
+  PropertyFilterDto,
+} from './dto/create-property.dto';
 import { UserRole } from '../user/schemas/user.schema';
 
 @UseGuards(JwtAuthGuard)
 @Controller('properties')
 export class PropertyController {
-  constructor(private readonly propertiesService: PropertyService) { }
+  constructor(private readonly propertiesService: PropertyService) {}
 
   // ── Create ────────────────────────────────────────────────────────────────
   @Post()
@@ -113,7 +126,7 @@ export class PropertyController {
     return this.propertiesService.create(dto);
   }
 
-  // ── Get All 
+  // ── Get All
   @Get()
   findAll(@Query() filters: PropertyFilterDto, @Request() req) {
     const { userId, role } = req.user;

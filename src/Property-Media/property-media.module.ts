@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { PropertyMedia, PropertyMediaSchema } from '../Property-Media/schemas/property-media.schema';
+import {
+  PropertyMedia,
+  PropertyMediaSchema,
+} from '../Property-Media/schemas/property-media.schema';
 import { PropertyMediaController } from './property-media.controller';
 import { PropertyMediaService } from './property-media.service';
 import { CloudinaryConfig } from '../Property-Media/cloudinary.config';
@@ -12,7 +15,7 @@ import { CloudinaryConfig } from '../Property-Media/cloudinary.config';
     ]),
   ],
   controllers: [PropertyMediaController],
-  providers:   [PropertyMediaService, CloudinaryConfig],
-  exports:     [PropertyMediaService],
+  providers: [PropertyMediaService, CloudinaryConfig],
+  exports: [PropertyMediaService],
 })
 export class PropertyMediaModule {}

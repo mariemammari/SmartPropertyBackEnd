@@ -28,9 +28,7 @@ import { UserDocument, UserRole } from '../user/schemas/user.schema';
 @Controller('property-submissions')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PropertySubmissionController {
-  constructor(
-    private readonly submissionService: PropertySubmissionService,
-  ) {}
+  constructor(private readonly submissionService: PropertySubmissionService) {}
 
   /**
    * POST /property-submissions/client
@@ -51,7 +49,6 @@ export class PropertySubmissionController {
     );
     //hana ajouter ce log pour debug
     console.log('RESULT:', JSON.stringify(result, null, 2));
-
 
     return {
       success: true,
@@ -102,7 +99,8 @@ export class PropertySubmissionController {
     @CurrentUser() user?: UserDocument,
   ) {
     const role = (user as any)?.role;
-    const userId = (user as any)?.userId?.toString() || (user as any)?._id?.toString();
+    const userId =
+      (user as any)?.userId?.toString() || (user as any)?._id?.toString();
 
     // Legacy frontend currently calls scope=agent
     if (scope === 'agent') {
@@ -111,7 +109,9 @@ export class PropertySubmissionController {
         role !== UserRole.BRANCH_MANAGER &&
         role !== UserRole.SUPER_ADMIN
       ) {
-        throw new ForbiddenException('Only agents/managers/admin can access agent scope submissions');
+        throw new ForbiddenException(
+          'Only agents/managers/admin can access agent scope submissions',
+        );
       }
 
       const pageNum = Math.max(1, parseInt(page, 10) || 1);
@@ -147,7 +147,11 @@ export class PropertySubmissionController {
    * User must be the assigned agent, agent, or admin.
    */
   @Get(':id')
-  @Roles(UserRole.REAL_ESTATE_AGENT, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN)
+  @Roles(
+    UserRole.REAL_ESTATE_AGENT,
+    UserRole.BRANCH_MANAGER,
+    UserRole.SUPER_ADMIN,
+  )
   async getSubmission(
     @Param('id') submissionId: string,
     @CurrentUser() user: UserDocument,
@@ -172,7 +176,11 @@ export class PropertySubmissionController {
    * Transitions property.status to 'available'
    */
   @Patch(':id/approve')
-  @Roles(UserRole.REAL_ESTATE_AGENT, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN)
+  @Roles(
+    UserRole.REAL_ESTATE_AGENT,
+    UserRole.BRANCH_MANAGER,
+    UserRole.SUPER_ADMIN,
+  )
   async approveSubmission(
     @Param('id') submissionId: string,
     @Body() dto: ApproveSubmissionDto,
@@ -198,7 +206,11 @@ export class PropertySubmissionController {
    * Property remains 'inactive'
    */
   @Patch(':id/reject')
-  @Roles(UserRole.REAL_ESTATE_AGENT, UserRole.BRANCH_MANAGER, UserRole.SUPER_ADMIN)
+  @Roles(
+    UserRole.REAL_ESTATE_AGENT,
+    UserRole.BRANCH_MANAGER,
+    UserRole.SUPER_ADMIN,
+  )
   async rejectSubmission(
     @Param('id') submissionId: string,
     @Body() dto: RejectSubmissionDto,

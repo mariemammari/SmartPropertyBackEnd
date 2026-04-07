@@ -3,10 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PropertySubmissionController } from './property-submission.controller';
 import { PropertySubmissionService } from './services/property-submission.service';
 import { AssignmentService } from './services/assignment.service';
-import {
-  Property,
-  PropertySchema,
-} from '../property/schemas/property.schema';
+import { Property, PropertySchema } from '../property/schemas/property.schema';
 import {
   PropertyListing,
   PropertyListingSchema,

@@ -86,7 +86,10 @@ export class Application {
   @Prop()
   documentUrl?: string;
 
-  @Prop({ default: ApplicationStatus.PENDING, enum: Object.values(ApplicationStatus) })
+  @Prop({
+    default: ApplicationStatus.PENDING,
+    enum: Object.values(ApplicationStatus),
+  })
   status!: string;
 
   @Prop({ enum: Object.values(RejectionType), required: false })

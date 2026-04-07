@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { PropertyListing, PropertyListingSchema } from '../property-listing/schemas/property-listing.schema';
+import {
+  PropertyListing,
+  PropertyListingSchema,
+} from '../property-listing/schemas/property-listing.schema';
 import { PropertyListingController } from '../property-listing/property-listing.controller';
 import { PropertyListingService } from './property-listing.service';
 import { RentalModule } from '../rental/rental.module';
@@ -16,4 +19,4 @@ import { RentalModule } from '../rental/rental.module';
   providers: [PropertyListingService],
   exports: [PropertyListingService],
 })
-export class PropertyListingModule { }
+export class PropertyListingModule {}

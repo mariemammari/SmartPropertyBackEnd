@@ -1,21 +1,36 @@
-
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Property, PropertyDocument, PropertyStatus } from '../property/schemas/property.schema';
-import { PropertyListing, PropertyListingDocument } from '../property-listing/schemas/property-listing.schema';
+import {
+  Property,
+  PropertyDocument,
+  PropertyStatus,
+} from '../property/schemas/property.schema';
+import {
+  PropertyListing,
+  PropertyListingDocument,
+} from '../property-listing/schemas/property-listing.schema';
 import { User, UserDocument } from '../user/schemas/user.schema';
 import { RentalService } from '../rental/rental.service';
-import { CreatePropertyDto, UpdatePropertyDto, PropertyFilterDto } from '../property/dto/create-property.dto';
+import {
+  CreatePropertyDto,
+  UpdatePropertyDto,
+  PropertyFilterDto,
+} from '../property/dto/create-property.dto';
 
 @Injectable()
 export class PropertyService {
   constructor(
     @InjectModel(Property.name) private propertyModel: Model<PropertyDocument>,
-    @InjectModel(PropertyListing.name) private listingModel: Model<PropertyListingDocument>,
+    @InjectModel(PropertyListing.name)
+    private listingModel: Model<PropertyListingDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly rentalService: RentalService,
-  ) { }
+  ) {}
 
   // ── Create ────────────────────────────────────────────────────────────────
   async create(dto: CreatePropertyDto): Promise<Property> {
@@ -36,14 +51,31 @@ export class PropertyService {
   }
 
   // ── Find All (with filters + pagination) ─────────────────────────────────
-  async findAll(filters: PropertyFilterDto): Promise<{ data: Property[]; total: number; page: number; pages: number }> {
+  async findAll(
+    filters: PropertyFilterDto,
+  ): Promise<{ data: Property[]; total: number; page: number; pages: number }> {
     const {
-      page = 1, limit = 8,
-      minPrice, maxPrice, minSize, maxSize,
-      type, propertyType, propertySubType, status, condition,
-      city, state, bedrooms, bathrooms,
-      hasParking, hasElevator, hasPool, hasAirConditioning,
-      ownerId, createdBy,
+      page = 1,
+      limit = 8,
+      minPrice,
+      maxPrice,
+      minSize,
+      maxSize,
+      type,
+      propertyType,
+      propertySubType,
+      status,
+      condition,
+      city,
+      state,
+      bedrooms,
+      bathrooms,
+      hasParking,
+      hasElevator,
+      hasPool,
+      hasAirConditioning,
+      ownerId,
+      createdBy,
     } = filters;
 
     console.log('🔍 [PropertyService.findAll] Raw filters received:', filters);
@@ -87,12 +119,18 @@ export class PropertyService {
     if (ownerId) query.ownerId = new Types.ObjectId(ownerId);
     if (createdBy) query.createdBy = new Types.ObjectId(createdBy);
 
-    console.log('📋 [PropertyService.findAll] Built MongoDB query:', JSON.stringify(query, null, 2));
+    console.log(
+      '📋 [PropertyService.findAll] Built MongoDB query:',
+      JSON.stringify(query, null, 2),
+    );
     console.log('📄 [PropertyService.findAll] Page:', page, 'Limit:', limit);
 
     const skip = (page - 1) * limit;
     const total = await this.propertyModel.countDocuments(query);
-    console.log('📊 [PropertyService.findAll] Total matching documents:', total);
+    console.log(
+      '📊 [PropertyService.findAll] Total matching documents:',
+      total,
+    );
 
     const data = await this.propertyModel
       .find(query)
@@ -103,7 +141,11 @@ export class PropertyService {
       .limit(limit)
       .exec();
 
-    console.log('✅ [PropertyService.findAll] Returned', data.length, 'properties');
+    console.log(
+      '✅ [PropertyService.findAll] Returned',
+      data.length,
+      'properties',
+    );
 
     return { data, total, page, pages: Math.ceil(total / limit) };
   }
@@ -137,25 +179,31 @@ export class PropertyService {
 
   // ── Find Rented by Owner ─────────────────────────────────────────────────
   async findRentedByOwner(ownerId: string): Promise<Property[]> {
-    console.log(`🔍 [findRentedByOwner] Searching for rented properties with ownerId: ${ownerId}`);
+    console.log(
+      `🔍 [findRentedByOwner] Searching for rented properties with ownerId: ${ownerId}`,
+    );
 
     const result = await this.propertyModel
       .find({
         ownerId: new Types.ObjectId(ownerId),
-        status: PropertyStatus.RENTED
+        status: PropertyStatus.RENTED,
       })
       .populate('ownerId', 'name email phone')
       .populate('createdBy', 'name email')
       .sort({ createdAt: -1 })
       .exec();
 
-    console.log(`✅ [findRentedByOwner] Found ${result.length} rented properties`);
+    console.log(
+      `✅ [findRentedByOwner] Found ${result.length} rented properties`,
+    );
     return result;
   }
 
   // ── Find Rented by Branch ─────────────────────────────────────────────────
   async findRentedByBranch(branchId: string): Promise<Property[]> {
-    console.log(`🔍 [findRentedByBranch] Searching for rented properties with branchId: ${branchId}`);
+    console.log(
+      `🔍 [findRentedByBranch] Searching for rented properties with branchId: ${branchId}`,
+    );
 
     const usersInBranch = await this.userModel
       .find({ branchId: branchId.toString() })
@@ -170,7 +218,9 @@ export class PropertyService {
         status: PropertyStatus.RENTED,
         $or: [
           { branchId: branchId.toString() },
-          ...(creatorIds.length > 0 ? [{ createdBy: { $in: creatorIds } }] : []),
+          ...(creatorIds.length > 0
+            ? [{ createdBy: { $in: creatorIds } }]
+            : []),
         ],
       })
       .populate('ownerId', 'name email phone')
@@ -178,26 +228,32 @@ export class PropertyService {
       .sort({ createdAt: -1 })
       .exec();
 
-    console.log(`✅ [findRentedByBranch] Found ${result.length} rented properties`);
+    console.log(
+      `✅ [findRentedByBranch] Found ${result.length} rented properties`,
+    );
     return result;
   }
 
   // ── Find Rented by Agent ──────────────────────────────────────────────────
   async findRentedByAgent(agentId: string): Promise<Property[]> {
-    console.log(`🔍 [findRentedByAgent] Searching for rented properties with agentId: ${agentId}`);
+    console.log(
+      `🔍 [findRentedByAgent] Searching for rented properties with agentId: ${agentId}`,
+    );
 
     // Now filter for rented only using enum
     const result = await this.propertyModel
       .find({
         createdBy: new Types.ObjectId(agentId),
-        status: PropertyStatus.RENTED
+        status: PropertyStatus.RENTED,
       })
       .populate('ownerId', 'name email phone')
       .populate('createdBy', 'name email')
       .sort({ createdAt: -1 })
       .exec();
 
-    console.log(`✅ [findRentedByAgent] Found ${result.length} rented properties`);
+    console.log(
+      `✅ [findRentedByAgent] Found ${result.length} rented properties`,
+    );
     return result;
   }
 
@@ -208,8 +264,16 @@ export class PropertyService {
 
     // Extract rental trigger fields before applying update to property
     const {
-      tenantId, propertyListingId, durationMonths, paymentFrequencyMonths,
-      autoRenew, noticePeriodDays, contractSignedAt, moveInDate, moveOutDate, notes,
+      tenantId,
+      propertyListingId,
+      durationMonths,
+      paymentFrequencyMonths,
+      autoRenew,
+      noticePeriodDays,
+      contractSignedAt,
+      moveInDate,
+      moveOutDate,
+      notes,
       ...propertyUpdate
     } = dto;
 
@@ -227,8 +291,14 @@ export class PropertyService {
       .exec();
     if (!property) throw new NotFoundException(`Property ${id} not found`);
 
-    if (dto.status === PropertyStatus.RENTED && existing.status !== PropertyStatus.RENTED) {
-      console.log(`🔷 [PropertyService.update] Status changed to RENTED. Creating rental for property:`, property._id);
+    if (
+      dto.status === PropertyStatus.RENTED &&
+      existing.status !== PropertyStatus.RENTED
+    ) {
+      console.log(
+        `🔷 [PropertyService.update] Status changed to RENTED. Creating rental for property:`,
+        property._id,
+      );
       try {
         await this.rentalService.createFromPropertyStatusChange({
           propertyId: property._id.toString(),
@@ -243,16 +313,31 @@ export class PropertyService {
           moveOutDate,
           notes,
         });
-        console.log(`✅ [PropertyService.update] Rental created successfully for property:`, property._id);
+        console.log(
+          `✅ [PropertyService.update] Rental created successfully for property:`,
+          property._id,
+        );
       } catch (error: any) {
-        console.log(`❌ [PropertyService.update] Failed to create rental:`, error.message);
+        console.log(
+          `❌ [PropertyService.update] Failed to create rental:`,
+          error.message,
+        );
         throw error;
       }
     }
 
-    if (dto.status === PropertyStatus.AVAILABLE && existing.status === PropertyStatus.RENTED) {
-      const terminatedCount = await this.rentalService.terminateActiveRentalsForProperty(property._id.toString());
-      console.log(`✅ [PropertyService.update] Terminated ${terminatedCount} active rental(s) for property:`, property._id);
+    if (
+      dto.status === PropertyStatus.AVAILABLE &&
+      existing.status === PropertyStatus.RENTED
+    ) {
+      const terminatedCount =
+        await this.rentalService.terminateActiveRentalsForProperty(
+          property._id.toString(),
+        );
+      console.log(
+        `✅ [PropertyService.update] Terminated ${terminatedCount} active rental(s) for property:`,
+        property._id,
+      );
     }
 
     return property;
@@ -265,15 +350,18 @@ export class PropertyService {
     // Convert string id to ObjectId for proper comparison
     const propertyObjectId = new Types.ObjectId(id);
 
-    console.log('🔍 Looking for listings with propertyId (string or ObjectId):', id);
+    console.log(
+      '🔍 Looking for listings with propertyId (string or ObjectId):',
+      id,
+    );
 
     // ⭐ DELETE ALL LISTINGS ASSOCIATED WITH THIS PROPERTY
     // Query for BOTH string and ObjectId formats in case data is stored as string
     const deleteResult = await this.listingModel.deleteMany({
       $or: [
-        { propertyId: propertyObjectId },  // In case it's stored as ObjectId
-        { propertyId: id }                  // In case it's stored as string
-      ]
+        { propertyId: propertyObjectId }, // In case it's stored as ObjectId
+        { propertyId: id }, // In case it's stored as string
+      ],
     });
     console.log('📊 Listings deleted count:', deleteResult.deletedCount);
 
@@ -285,28 +373,33 @@ export class PropertyService {
     return {
       message: 'Property and associated listings deleted successfully',
       listingsDeleted: deleteResult.deletedCount,
-      propertyDeleted: true
+      propertyDeleted: true,
     };
   }
 
   // ── Stats ─────────────────────────────────────────────────────────────────
   async getStats(): Promise<any> {
-    const [total, forRent, forSale, available, rented, sold] = await Promise.all([
-      this.propertyModel.countDocuments(),
-      this.propertyModel.countDocuments({ type: 'rent' }),
-      this.propertyModel.countDocuments({ type: 'sale' }),
-      this.propertyModel.countDocuments({ status: 'available' }),
-      this.propertyModel.countDocuments({ status: 'rented' }),
-      this.propertyModel.countDocuments({ status: 'sold' }),
-    ]);
+    const [total, forRent, forSale, available, rented, sold] =
+      await Promise.all([
+        this.propertyModel.countDocuments(),
+        this.propertyModel.countDocuments({ type: 'rent' }),
+        this.propertyModel.countDocuments({ type: 'sale' }),
+        this.propertyModel.countDocuments({ status: 'available' }),
+        this.propertyModel.countDocuments({ status: 'rented' }),
+        this.propertyModel.countDocuments({ status: 'sold' }),
+      ]);
     return { total, forRent, forSale, available, rented, sold };
   }
 
   /** Lightweight labels for voice navigation fuzzy matching (client assistant). */
-  async findVoiceCatalog(limit = 600): Promise<{ id: string; label: string }[]> {
+  async findVoiceCatalog(
+    limit = 600,
+  ): Promise<{ id: string; label: string }[]> {
     const list = await this.propertyModel
       .find({ status: { $nin: [PropertyStatus.INACTIVE] } })
-      .select('_id title description address city state neighborhood propertyType propertySubType type')
+      .select(
+        '_id title description address city state neighborhood propertyType propertySubType type',
+      )
       .limit(limit)
       .lean()
       .exec();

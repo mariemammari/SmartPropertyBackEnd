@@ -19,11 +19,12 @@ import { Global } from '@nestjs/common';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'your-super-secret-jwt-key-change-in-production',
+        secret:
+          configService.get<string>('JWT_SECRET') ||
+          'your-super-secret-jwt-key-change-in-production',
         signOptions: { expiresIn: '24h' },
       }),
       inject: [ConfigService],
-
     }),
   ],
   controllers: [AuthController],
@@ -31,5 +32,4 @@ import { Global } from '@nestjs/common';
 
   exports: [AuthService, JwtStrategy, PassportModule, JwtModule],
 })
-export class AuthModule { }
-
+export class AuthModule {}

@@ -29,13 +29,12 @@ export class SignUpDto {
   @IsEmail()
   email: string;
 
-
-  @ValidateIf(o => o.role === UserRole.CLIENT)
+  @ValidateIf((o) => o.role === UserRole.CLIENT)
   @IsNotEmpty()
   @IsString()
   city: string;
 
-  @ValidateIf(o => o.role === UserRole.CLIENT)
+  @ValidateIf((o) => o.role === UserRole.CLIENT)
   @IsNotEmpty()
   @IsString()
   state: string;
@@ -43,11 +42,10 @@ export class SignUpDto {
   @IsNotEmpty()
   @IsString()
   @Matches(/^[0-9+\-\s()]+$/, {
-    message: 'Phone number must contain only digits, +, -, spaces, and parentheses',
+    message:
+      'Phone number must contain only digits, +, -, spaces, and parentheses',
   })
   phone: string;
-
-
 
   @IsNotEmpty()
   @IsString()
@@ -63,7 +61,6 @@ export class SignUpDto {
   // @RequiresDobIfClient()
   dateOfBirth?: string;
 
-
   // Optional field for branch managers
   // NEW FIELD: branchId with custom validation
   @IsOptional()
@@ -75,4 +72,3 @@ export class SignUpDto {
   @IsString()
   photo?: string;
 }
-

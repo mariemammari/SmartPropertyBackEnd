@@ -1,4 +1,14 @@
-import { Controller, Post, Body, Get, Param, Patch, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Patch,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
 import { ApplicationService } from './application.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
@@ -7,7 +17,7 @@ import { memoryStorage } from 'multer';
 
 @Controller('application')
 export class ApplicationController {
-  constructor(private readonly applicationService: ApplicationService) { }
+  constructor(private readonly applicationService: ApplicationService) {}
 
   @Post()
   async createApplication(@Body() createDto: CreateApplicationDto) {
@@ -19,7 +29,7 @@ export class ApplicationController {
     FileInterceptor('file', {
       storage: memoryStorage(),
       limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-    })
+    }),
   )
   async uploadDocument(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('File is missing');
@@ -47,7 +57,10 @@ export class ApplicationController {
     @Param('clientId') clientId: string,
     @Param('propertyId') propertyId: string,
   ) {
-    return this.applicationService.findLatestByClientAndProperty(clientId, propertyId);
+    return this.applicationService.findLatestByClientAndProperty(
+      clientId,
+      propertyId,
+    );
   }
 
   @Get(':id')
@@ -56,11 +69,14 @@ export class ApplicationController {
   }
 
   @Patch(':id/status')
-  async updateStatus(@Param('id') id: string, @Body() updateDto: UpdateApplicationDto) {
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateApplicationDto,
+  ) {
     return this.applicationService.updateStatus(id, updateDto);
   }
 
-  @Get("property/:propertyId/")
+  @Get('property/:propertyId/')
   async getApplicationsForProperty(@Param('propertyId') propertyId: string) {
     return this.applicationService.findAllByProperty(propertyId);
   }

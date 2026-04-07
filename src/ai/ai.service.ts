@@ -34,7 +34,10 @@ export class AiService {
     }
   }
 
-  async generateResponse(prompt: string, history: { role: string; content: string }[] = []) {
+  async generateResponse(
+    prompt: string,
+    history: { role: string; content: string }[] = [],
+  ) {
     if (!this.groq) {
       throw new Error('Groq AI not initialized. Please check your API key.');
     }
@@ -43,7 +46,7 @@ export class AiService {
       this.logger.log(`Generating response via Groq...`);
 
       const messages: any[] = history.map((h) => ({
-        role: (h.role === 'bot' || h.role === 'model' ? 'assistant' : 'user') as 'assistant' | 'user',
+        role: h.role === 'bot' || h.role === 'model' ? 'assistant' : 'user',
         content: h.content,
       }));
 
@@ -54,15 +57,24 @@ export class AiService {
       };
 
       const completion = await this.groq.chat.completions.create({
-        messages: [systemPrompt, ...messages, { role: 'user' as const, content: prompt }],
+        messages: [
+          systemPrompt,
+          ...messages,
+          { role: 'user' as const, content: prompt },
+        ],
         model: 'llama-3.3-70b-versatile',
         temperature: 0.7,
         max_tokens: 1024,
       });
 
-      return completion.choices[0]?.message?.content || 'Désolé, je ne peux pas répondre pour le moment.';
+      return (
+        completion.choices[0]?.message?.content ||
+        'Désolé, je ne peux pas répondre pour le moment.'
+      );
     } catch (error: any) {
-      this.logger.error(`Error generating response from Groq: ${error?.message || error}`);
+      this.logger.error(
+        `Error generating response from Groq: ${error?.message || error}`,
+      );
       throw error;
     }
   }
@@ -110,7 +122,9 @@ export class AiService {
           '',
         )
         .trim();
-      s = s.replace(/\s+(branch|office)(\s+detail|\s+details|\s+page)?\s*$/gi, '').trim();
+      s = s
+        .replace(/\s+(branch|office)(\s+detail|\s+details|\s+page)?\s*$/gi, '')
+        .trim();
       if (s === before) break;
     }
     s = s.replace(/^(the|a|an|this|that)\s+/gi, '').trim();
@@ -120,25 +134,31 @@ export class AiService {
   /** "property named Villa Rose" / "branch called Tunis Centre" / "open property salim" */
   private extractExplicitPlaceName(transcript: string): string | null {
     const t = transcript.trim();
-    
+
     // Match "open property <name>" pattern
-    let m = t.match(/\b(?:open|show|view)\s+(?:property|properties|listing)\s+(.+)/i);
+    let m = t.match(
+      /\b(?:open|show|view)\s+(?:property|properties|listing)\s+(.+)/i,
+    );
     if (m) {
       let rest = m[1].trim();
-      rest = rest.replace(/\s+(property|properties|details?|page)\s*$/i, '').trim();
+      rest = rest
+        .replace(/\s+(property|properties|details?|page)\s*$/i, '')
+        .trim();
       if (rest.length >= 2) return rest;
     }
-    
+
     // Match "property named Villa Rose" pattern
     m = t.match(
       /\b(?:property|properties|listing|place|apartment|villa|studio|flat|house|home)\s+(?:named|called)\s+(.+)/i,
     );
     if (m) {
       let rest = m[1].trim();
-      rest = rest.replace(/\s+(property|properties|details?|page)\s*$/i, '').trim();
+      rest = rest
+        .replace(/\s+(property|properties|details?|page)\s*$/i, '')
+        .trim();
       return rest.length >= 2 ? rest : null;
     }
-    
+
     // Match "branch called/named" pattern
     m = t.match(/\bbranch(?:es)?\s+(?:named|called)\s+(.+)/i);
     if (m) {
@@ -151,7 +171,9 @@ export class AiService {
 
   /** Last 2–4 words help match "… in Borj Cedria" against branch/property labels */
   private tailWordQueries(placeQ: string): string[] {
-    const words = placeQ.split(/\s+/).filter((w) => w.replace(/[^a-z0-9]/gi, '').length > 1);
+    const words = placeQ
+      .split(/\s+/)
+      .filter((w) => w.replace(/[^a-z0-9]/gi, '').length > 1);
     const out: string[] = [];
     if (words.length >= 2) out.push(words.slice(-2).join(' '));
     if (words.length >= 3) out.push(words.slice(-3).join(' '));
@@ -186,7 +208,10 @@ export class AiService {
       .split(/\s+/)
       .filter((w) => w.replace(/[^a-z0-9]/gi, '').length > 0);
     if (words.length === 0) return true;
-    if (words.length === 1 && this.vaguePlaceSingleWords.has(words[0].replace(/[^a-z0-9]/gi, ''))) {
+    if (
+      words.length === 1 &&
+      this.vaguePlaceSingleWords.has(words[0].replace(/[^a-z0-9]/gi, ''))
+    ) {
       return true;
     }
     return false;
@@ -273,7 +298,8 @@ export class AiService {
         let mx = 0;
         if (w.length >= 3 && labSp.includes(w)) mx = Math.max(mx, 0.9);
         for (const v of lt) {
-          if (w.length >= 3 && (v.includes(w) || w.includes(v))) mx = Math.max(mx, 0.88);
+          if (w.length >= 3 && (v.includes(w) || w.includes(v)))
+            mx = Math.max(mx, 0.88);
           mx = Math.max(mx, this.normalizedLevenshtein(w, v));
           mx = Math.max(mx, this.diceBigrams(w, v));
         }
@@ -301,7 +327,9 @@ export class AiService {
     return Math.min(1, best);
   }
 
-  private mergeHybridWithFuse<T extends { id: string; label: string; ascii: string }>(
+  private mergeHybridWithFuse<
+    T extends { id: string; label: string; ascii: string },
+  >(
     items: T[],
     queries: string[],
     fuseBest: { item: T; score: number } | null,
@@ -319,7 +347,9 @@ export class AiService {
       bump(fuseBest.item, fuseGood * 0.82);
     }
 
-    const qList = queries.filter((q) => q.length >= 2 && !this.isTooVaguePlaceQuery(q));
+    const qList = queries.filter(
+      (q) => q.length >= 2 && !this.isTooVaguePlaceQuery(q),
+    );
     const scanItems = (list: T[]) => {
       for (const it of list) {
         let mx = 0;
@@ -350,8 +380,10 @@ export class AiService {
         } catch (err) {
           // Fallback: add items that contain the query string
           for (const item of items) {
-            if (item.label.toLowerCase().includes(q.toLowerCase()) || 
-                item.ascii.includes(q.toLowerCase())) {
+            if (
+              item.label.toLowerCase().includes(q.toLowerCase()) ||
+              item.ascii.includes(q.toLowerCase())
+            ) {
               idSet.add(item.id);
             }
           }
@@ -371,7 +403,10 @@ export class AiService {
   /**
    * Deterministic routes so phrases like "go to for rent" always work (no LLM).
    */
-  private tryKeywordNavigation(transcript: string, role: string): VoiceNavigationResult | null {
+  private tryKeywordNavigation(
+    transcript: string,
+    role: string,
+  ): VoiceNavigationResult | null {
     const raw = this.normalizeVoiceTranscript(transcript);
     const t = raw.toLowerCase().replace(/\s+/g, ' ');
     if (!t) return null;
@@ -383,12 +418,18 @@ export class AiService {
     const wantsRent =
       /\b(for rent|properties for rent|property for rent|rentals?|rent only|to rent|show rent|rent search|looking to rent)\b/.test(
         t,
-      ) || /^(go to|take me to|open|navigate to|show|bring me to)\s+(the\s+)?for rent$/i.test(raw);
+      ) ||
+      /^(go to|take me to|open|navigate to|show|bring me to)\s+(the\s+)?for rent$/i.test(
+        raw,
+      );
 
     const wantsSale =
       /\b(for sale|properties for sale|property for sale|to buy|buy properties|buy a (home|house|property)|purchase|on sale)\b/.test(
         t,
-      ) || /^(go to|take me to|open|navigate to|show)\s+(the\s+)?for sale$/i.test(raw);
+      ) ||
+      /^(go to|take me to|open|navigate to|show)\s+(the\s+)?for sale$/i.test(
+        raw,
+      );
 
     if (wantsRent && !wantsSale) {
       return {
@@ -421,18 +462,30 @@ export class AiService {
     const wantsHome =
       /^home$/i.test(raw) ||
       /^main$/i.test(raw) ||
-      /\b(home page|main page|front office|landing|property home|browse home)\b/.test(t) ||
+      /\b(home page|main page|front office|landing|property home|browse home)\b/.test(
+        t,
+      ) ||
       /\bgo\s+home\b/.test(t) ||
-      /^(go to|take me to|open|head to|navigate to)(\s+me)?(\s+to)?\s+(the\s+)?(main|home)(\s+page)?$/i.test(raw);
+      /^(go to|take me to|open|head to|navigate to)(\s+me)?(\s+to)?\s+(the\s+)?(main|home)(\s+page)?$/i.test(
+        raw,
+      );
 
     if (wantsHome) {
-      return { action: 'navigate', target: '/front-office', message: 'Going to the home page.' };
+      return {
+        action: 'navigate',
+        target: '/front-office',
+        message: 'Going to the home page.',
+      };
     }
 
     const wantsBranchList =
       /^branches?$/i.test(raw) ||
-      /^(go to|take me to|open|head to|show|view|navigate to)(\s+me)?(\s+to)?\s+(the\s+)?(all\s+)?branches?$/i.test(raw) ||
-      /\b(branch list|all branches|our branches|office locations?|agency locations?|list of branches)\b/.test(t) ||
+      /^(go to|take me to|open|head to|show|view|navigate to)(\s+me)?(\s+to)?\s+(the\s+)?(all\s+)?branches?$/i.test(
+        raw,
+      ) ||
+      /\b(branch list|all branches|our branches|office locations?|agency locations?|list of branches)\b/.test(
+        t,
+      ) ||
       /\b(show|open|view)\s+(me\s+)?(the\s+)?(all\s+)?branches?\b/.test(t) ||
       /\b(go to|take me to|navigate to)\s+(the\s+)?branches?\b/.test(t);
 
@@ -450,13 +503,21 @@ export class AiService {
       /^(go to|open|take me to)\s+profile$/i.test(raw);
 
     if (wantsProfile) {
-      const target = role === 'guest' ? '/front-office/profile' : '/client-space/profile';
+      const target =
+        role === 'guest' ? '/front-office/profile' : '/client-space/profile';
       return { action: 'navigate', target, message: 'Opening your profile.' };
     }
 
     if (role === 'client') {
-      if (/\b(dashboard|my dashboard|client (home|dashboard))\b/.test(t) || /^dashboard$/i.test(raw)) {
-        return { action: 'navigate', target: '/client-space', message: 'Opening your dashboard.' };
+      if (
+        /\b(dashboard|my dashboard|client (home|dashboard))\b/.test(t) ||
+        /^dashboard$/i.test(raw)
+      ) {
+        return {
+          action: 'navigate',
+          target: '/client-space',
+          message: 'Opening your dashboard.',
+        };
       }
       if (/\bsaved(\s+properties)?\b/.test(t) || /\bbookmarks?\b/.test(t)) {
         return {
@@ -472,7 +533,10 @@ export class AiService {
           message: 'Opening your applications.',
         };
       }
-      if (/\b(file|create)\s+(a\s+)?(new\s+)?complaint\b/.test(t) || /\bnew\s+complaint\b/.test(t)) {
+      if (
+        /\b(file|create)\s+(a\s+)?(new\s+)?complaint\b/.test(t) ||
+        /\bnew\s+complaint\b/.test(t)
+      ) {
         return {
           action: 'navigate',
           target: '/client-space/complaints/new',
@@ -506,8 +570,12 @@ export class AiService {
 
     if (
       /^branches?$/i.test(t) ||
-      /^(go to|take me to|open|head to|show|view|navigate to)(\s+me)?(\s+to)?\s+(the\s+)?(all\s+)?branches?$/i.test(t) ||
-      /^(go to|take me to|open|head to|navigate to)(\s+me)?(\s+to)?\s+(the\s+)?(main|home)(\s+page)?$/i.test(t) ||
+      /^(go to|take me to|open|head to|show|view|navigate to)(\s+me)?(\s+to)?\s+(the\s+)?(all\s+)?branches?$/i.test(
+        t,
+      ) ||
+      /^(go to|take me to|open|head to|navigate to)(\s+me)?(\s+to)?\s+(the\s+)?(main|home)(\s+page)?$/i.test(
+        t,
+      ) ||
       /^home$/i.test(t) ||
       /^main$/i.test(t)
     ) {
@@ -518,8 +586,9 @@ export class AiService {
     if (/^apply(\s+now)?\b/i.test(t)) return null;
 
     const genericPropertyBrowse =
-      /^(show|open|view|browse)\s+(me\s+)?(all\s+)?(properties|listings|homes?)$/i.test(tl) ||
-      /^(properties|listings)\s+(for\s+)?(rent|sale)$/i.test(tl);
+      /^(show|open|view|browse)\s+(me\s+)?(all\s+)?(properties|listings|homes?)$/i.test(
+        tl,
+      ) || /^(properties|listings)\s+(for\s+)?(rent|sale)$/i.test(tl);
     if (genericPropertyBrowse) return null;
 
     const explicit = this.extractExplicitPlaceName(t);
@@ -536,10 +605,12 @@ export class AiService {
       this.foldAscii(t),
     ].filter((q, i, arr) => q.length >= 2 && arr.indexOf(q) === i);
 
-    this.logger.debug(`🔍 Fuzzy search queries: [${queries.map(q => `"${q}"`).join(', ')}]`);
+    this.logger.debug(
+      `🔍 Fuzzy search queries: [${queries.map((q) => `"${q}"`).join(', ')}]`,
+    );
     this.logger.debug(`📍 Explicit match attempt: "${explicit}"`);
     this.logger.debug(`📝 Place query: "${placeQ}"`);
-    
+
     try {
       const fuseOpts = {
         keys: ['label', 'ascii'] as string[],
@@ -549,14 +620,21 @@ export class AiService {
         minMatchCharLength: 2,
       };
 
-      this.logger.debug(`Searching in ${properties.length} properties and ${branches.length} branches`);
+      this.logger.debug(
+        `Searching in ${properties.length} properties and ${branches.length} branches`,
+      );
       if (properties.length > 0) {
-        this.logger.debug(`Sample properties: ${properties.slice(0, 3).map(p => `"${p.label}"`).join(', ')}`);
+        this.logger.debug(
+          `Sample properties: ${properties
+            .slice(0, 3)
+            .map((p) => `"${p.label}"`)
+            .join(', ')}`,
+        );
       }
-      
+
       let fuseP: any = null;
       let fuseB: any = null;
-      
+
       try {
         fuseP = new Fuse(properties, fuseOpts);
         fuseB = new Fuse(branches, fuseOpts);
@@ -573,9 +651,14 @@ export class AiService {
       for (const q of queries) {
         if (!fuseP) {
           for (const prop of properties) {
-            const labelScore = q.toLowerCase() === prop.label.toLowerCase() ? 0 : 
-                           prop.label.toLowerCase().includes(q.toLowerCase()) ? 0.3 :
-                           prop.ascii.includes(q) ? 0.5 : 1;
+            const labelScore =
+              q.toLowerCase() === prop.label.toLowerCase()
+                ? 0
+                : prop.label.toLowerCase().includes(q.toLowerCase())
+                  ? 0.3
+                  : prop.ascii.includes(q)
+                    ? 0.5
+                    : 1;
             if (labelScore < pScore && labelScore < 0.8) {
               pScore = labelScore;
               pItem = prop;
@@ -589,12 +672,17 @@ export class AiService {
             pItem = pr.item as (typeof properties)[0];
           }
         }
-        
+
         if (!fuseB) {
           for (const branch of branches) {
-            const labelScore = q.toLowerCase() === branch.label.toLowerCase() ? 0 :
-                           branch.label.toLowerCase().includes(q.toLowerCase()) ? 0.3 :
-                           branch.ascii.includes(q) ? 0.5 : 1;
+            const labelScore =
+              q.toLowerCase() === branch.label.toLowerCase()
+                ? 0
+                : branch.label.toLowerCase().includes(q.toLowerCase())
+                  ? 0.3
+                  : branch.ascii.includes(q)
+                    ? 0.5
+                    : 1;
             if (labelScore < bScore && labelScore < 0.8) {
               bScore = labelScore;
               bItem = branch;
@@ -614,7 +702,9 @@ export class AiService {
         Boolean(explicit) ||
         pScore > 0.46 ||
         bScore > 0.46 ||
-        placeQ.split(/\s+/).filter((w) => w.replace(/[^a-z0-9]/gi, '').length > 1).length >= 2;
+        placeQ
+          .split(/\s+/)
+          .filter((w) => w.replace(/[^a-z0-9]/gi, '').length > 1).length >= 2;
 
       const mergedP = this.mergeHybridWithFuse(
         properties,
@@ -633,13 +723,17 @@ export class AiService {
       const gB = mergedB?.score ?? 0;
 
       // STRICT MATCHING: Only match if explicitly commanded with "open property" or "open branch"
-      const saidOpenProperty = /\b(?:open|show|view)\s+(?:property|properties|listing)\b/i.test(t);
-      const saidOpenBranch = /\b(?:open|show|view)\s+(?:branch|branches|office)\b/i.test(t);
+      const saidOpenProperty =
+        /\b(?:open|show|view)\s+(?:property|properties|listing)\b/i.test(t);
+      const saidOpenBranch =
+        /\b(?:open|show|view)\s+(?:branch|branches|office)\b/i.test(t);
 
       this.logger.debug(`🎤 Explicit match: "${explicit}"`);
       this.logger.debug(`📖 Said "open property": ${saidOpenProperty}`);
       this.logger.debug(`📖 Said "open branch": ${saidOpenBranch}`);
-      this.logger.debug(`📊 Scores - Property: ${gP.toFixed(3)}, Branch: ${gB.toFixed(3)}`);
+      this.logger.debug(
+        `📊 Scores - Property: ${gP.toFixed(3)}, Branch: ${gB.toFixed(3)}`,
+      );
 
       // Only allow matching if user explicitly said "open property" or "open branch"
       if (!explicit && !saidOpenProperty && !saidOpenBranch) {
@@ -649,9 +743,11 @@ export class AiService {
 
       // MINIMUM THRESHOLD (any valid match > 0)
       const MIN_MATCH_SCORE = 0.01;
-      
+
       if (saidOpenProperty && mergedP && gP > MIN_MATCH_SCORE) {
-        this.logger.debug(`✅ Opening property: "${mergedP.item.label}" (score: ${gP.toFixed(3)})`);
+        this.logger.debug(
+          `✅ Opening property: "${mergedP.item.label}" (score: ${gP.toFixed(3)})`,
+        );
         return {
           action: 'navigate',
           target: `/front-office/property-detail/${mergedP.item.id}`,
@@ -660,7 +756,9 @@ export class AiService {
       }
 
       if (saidOpenBranch && mergedB && gB > MIN_MATCH_SCORE) {
-        this.logger.debug(`✅ Opening branch: "${mergedB.item.label}" (score: ${gB.toFixed(3)})`);
+        this.logger.debug(
+          `✅ Opening branch: "${mergedB.item.label}" (score: ${gB.toFixed(3)})`,
+        );
         return {
           action: 'navigate',
           target: `/front-office/branches/${mergedB.item.id}`,
@@ -687,18 +785,24 @@ export class AiService {
     if (!['client', 'guest'].includes(normalizedRole)) {
       return {
         action: 'speak',
-        message: 'The voice assistant is only available for clients and guests browsing the site.',
+        message:
+          'The voice assistant is only available for clients and guests browsing the site.',
       };
     }
 
     const tClean = this.normalizeVoiceTranscript(transcript);
     if (!tClean) {
-      return { action: 'speak', message: 'I did not catch that. Please try again.' };
+      return {
+        action: 'speak',
+        message: 'I did not catch that. Please try again.',
+      };
     }
 
     const keywordHit = this.tryKeywordNavigation(tClean, normalizedRole);
     if (keywordHit) {
-      this.logger.log(`Keyword navigation: ${keywordHit.target || keywordHit.action}`);
+      this.logger.log(
+        `Keyword navigation: ${keywordHit.target || keywordHit.action}`,
+      );
       return keywordHit;
     }
 
@@ -708,7 +812,9 @@ export class AiService {
         this.branchService.findAll(),
       ]);
 
-      this.logger.debug(`📦 Property catalog size: ${propCatalog?.length || 0}`);
+      this.logger.debug(
+        `📦 Property catalog size: ${propCatalog?.length || 0}`,
+      );
       this.logger.debug(`🏢 Branch list size: ${branchList?.length || 0}`);
 
       const branches = branchList
@@ -728,7 +834,9 @@ export class AiService {
         ascii: this.foldAscii(p.label),
       }));
 
-      this.logger.debug(`Searching in ${properties.length} properties and ${branches.length} branches`);
+      this.logger.debug(
+        `Searching in ${properties.length} properties and ${branches.length} branches`,
+      );
       this.logger.debug(`Query: "${tClean}"`);
 
       const fuzzy = this.tryFuzzyEntityNavigation(tClean, properties, branches);
@@ -736,16 +844,19 @@ export class AiService {
         this.logger.log(`✅ Fuzzy navigation hit: ${fuzzy.target}`);
         return fuzzy;
       }
-      
+
       this.logger.debug(`❌ No fuzzy match found for: "${tClean}"`);
     } catch (e: any) {
-      this.logger.error(`❌ Voice catalog / fuzzy step failed: ${e?.message || e}`);
+      this.logger.error(
+        `❌ Voice catalog / fuzzy step failed: ${e?.message || e}`,
+      );
     }
 
     if (!this.groq) {
       return {
         action: 'speak',
-        message: 'Voice routing is not fully configured. Try a command like for rent, for sale, or branches.',
+        message:
+          'Voice routing is not fully configured. Try a command like for rent, for sale, or branches.',
       };
     }
 
@@ -844,7 +955,10 @@ RULES:
 
       let cleaned = raw.trim();
       if (cleaned.startsWith('```')) {
-        cleaned = cleaned.replace(/^```(?:json)?\s*/, '').replace(/```\s*$/, '').trim();
+        cleaned = cleaned
+          .replace(/^```(?:json)?\s*/, '')
+          .replace(/```\s*$/, '')
+          .trim();
       }
 
       try {
@@ -852,7 +966,10 @@ RULES:
         return {
           action: parsed.action || 'speak',
           target: parsed.target || undefined,
-          value: parsed.value !== undefined && parsed.value !== null ? String(parsed.value) : undefined,
+          value:
+            parsed.value !== undefined && parsed.value !== null
+              ? String(parsed.value)
+              : undefined,
           message: parsed.message || 'Done.',
           voiceHook: parsed.voiceHook || undefined,
           nextPrompt: parsed.nextPrompt || undefined,
@@ -865,7 +982,9 @@ RULES:
         };
       }
     } catch (error: any) {
-      this.logger.error(`Error interpreting navigation command: ${error?.message || error}`);
+      this.logger.error(
+        `Error interpreting navigation command: ${error?.message || error}`,
+      );
       throw error;
     }
   }

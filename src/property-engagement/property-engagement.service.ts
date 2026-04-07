@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Property, PropertyDocument } from '../property/schemas/property.schema';
+import {
+  Property,
+  PropertyDocument,
+} from '../property/schemas/property.schema';
 import { User, UserDocument, UserRole } from '../user/schemas/user.schema';
 import { NotificationsService } from '../notifications/notifications.service';
 import {
@@ -68,25 +71,34 @@ export class PropertyEngagementService {
     return String(userId);
   }
 
-  private buildScopeMatch(scope: EngagementScope, currentUser: any): Record<string, any> {
+  private buildScopeMatch(
+    scope: EngagementScope,
+    currentUser: any,
+  ): Record<string, any> {
     const role = currentUser?.role;
     const userId = this.resolveUserId(currentUser);
 
     if (scope === 'agent') {
       if (role !== UserRole.REAL_ESTATE_AGENT) {
-        throw new ForbiddenException('Agent summary is available to real estate agents only');
+        throw new ForbiddenException(
+          'Agent summary is available to real estate agents only',
+        );
       }
       return { propertyCreatedById: userId };
     }
 
     if (scope === 'branch') {
       if (role !== UserRole.BRANCH_MANAGER) {
-        throw new ForbiddenException('Branch summary is available to branch managers only');
+        throw new ForbiddenException(
+          'Branch summary is available to branch managers only',
+        );
       }
 
       const branchId = this.toSafeText(currentUser?.branchId);
       if (!branchId) {
-        throw new ForbiddenException('Branch manager does not have a branch assigned');
+        throw new ForbiddenException(
+          'Branch manager does not have a branch assigned',
+        );
       }
 
       return { propertyBranchId: branchId };
@@ -94,7 +106,9 @@ export class PropertyEngagementService {
 
     if (scope === 'global') {
       if (role !== UserRole.SUPER_ADMIN) {
-        throw new ForbiddenException('Global summary is available to super admins only');
+        throw new ForbiddenException(
+          'Global summary is available to super admins only',
+        );
       }
       return {};
     }
@@ -113,7 +127,9 @@ export class PropertyEngagementService {
     if (role === UserRole.REAL_ESTATE_AGENT) {
       const createdBy = this.toSafeText(property?.createdBy);
       if (!createdBy || createdBy !== userId) {
-        throw new ForbiddenException('You can access engagement stats for your own properties only');
+        throw new ForbiddenException(
+          'You can access engagement stats for your own properties only',
+        );
       }
       return;
     }
@@ -122,7 +138,9 @@ export class PropertyEngagementService {
       const branchId = this.toSafeText(currentUser?.branchId);
       const propertyBranch = this.toSafeText(property?.branchId);
       if (!branchId || !propertyBranch || propertyBranch !== branchId) {
-        throw new ForbiddenException('You can access engagement stats for your branch properties only');
+        throw new ForbiddenException(
+          'You can access engagement stats for your branch properties only',
+        );
       }
       return;
     }
@@ -131,7 +149,9 @@ export class PropertyEngagementService {
       return;
     }
 
-    throw new ForbiddenException('You are not allowed to access property engagement statistics');
+    throw new ForbiddenException(
+      'You are not allowed to access property engagement statistics',
+    );
   }
 
   private async notifyMilestoneIfNeeded(params: {
@@ -149,12 +169,20 @@ export class PropertyEngagementService {
           _id: null,
           clicks: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.CLICK] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.CLICK] },
+                1,
+                0,
+              ],
             },
           },
           views: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.VIEW] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.VIEW] },
+                1,
+                0,
+              ],
             },
           },
         },
@@ -292,7 +320,10 @@ export class PropertyEngagementService {
     };
   }
 
-  async getSummaryForScope(scope: EngagementScope, currentUser: any): Promise<any> {
+  async getSummaryForScope(
+    scope: EngagementScope,
+    currentUser: any,
+  ): Promise<any> {
     const match = this.buildScopeMatch(scope, currentUser);
 
     const totalsAgg = await this.eventModel.aggregate([
@@ -302,17 +333,29 @@ export class PropertyEngagementService {
           _id: null,
           clicks: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.CLICK] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.CLICK] },
+                1,
+                0,
+              ],
             },
           },
           views: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.VIEW] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.VIEW] },
+                1,
+                0,
+              ],
             },
           },
           saves: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.SAVE] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.SAVE] },
+                1,
+                0,
+              ],
             },
           },
           totalEvents: { $sum: 1 },
@@ -342,17 +385,29 @@ export class PropertyEngagementService {
           _id: '$propertyId',
           clicks: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.CLICK] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.CLICK] },
+                1,
+                0,
+              ],
             },
           },
           views: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.VIEW] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.VIEW] },
+                1,
+                0,
+              ],
             },
           },
           saves: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.SAVE] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.SAVE] },
+                1,
+                0,
+              ],
             },
           },
           totalEvents: { $sum: 1 },
@@ -384,17 +439,29 @@ export class PropertyEngagementService {
           _id: '$userId',
           clicks: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.CLICK] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.CLICK] },
+                1,
+                0,
+              ],
             },
           },
           views: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.VIEW] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.VIEW] },
+                1,
+                0,
+              ],
             },
           },
           saves: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.SAVE] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.SAVE] },
+                1,
+                0,
+              ],
             },
           },
           totalEvents: { $sum: 1 },
@@ -417,8 +484,12 @@ export class PropertyEngagementService {
       { $sort: { views: -1, clicks: -1, lastEventAt: -1 } },
     ]);
 
-    const propertyIds = propertiesAgg.map((item: any) => item.propertyId).filter(Boolean);
-    const userIds = usersAgg.map((item: any) => this.toSafeText(item.userId)).filter(Boolean);
+    const propertyIds = propertiesAgg
+      .map((item: any) => item.propertyId)
+      .filter(Boolean);
+    const userIds = usersAgg
+      .map((item: any) => this.toSafeText(item.userId))
+      .filter(Boolean);
 
     const properties = propertyIds.length
       ? await this.propertyModel
@@ -441,9 +512,7 @@ export class PropertyEngagementService {
       ]),
     );
 
-    const userMap = new Map(
-      users.map((user: any) => [String(user._id), user]),
-    );
+    const userMap = new Map(users.map((user: any) => [String(user._id), user]));
 
     const enrichedProperties = propertiesAgg.map((item: any) => {
       const propertyId = String(item.propertyId);
@@ -467,7 +536,8 @@ export class PropertyEngagementService {
       const user = userMap.get(userId);
       return {
         userId,
-        fullName: this.toSafeText(user?.fullName) || `User #${userId.slice(-6)}`,
+        fullName:
+          this.toSafeText(user?.fullName) || `User #${userId.slice(-6)}`,
         role: this.toSafeText(user?.role) || 'unknown',
         email: this.toSafeText(user?.email),
         clicks: Number(item.clicks) || 0,
@@ -516,7 +586,9 @@ export class PropertyEngagementService {
 
     this.assertCanAccessProperty(property, currentUser);
 
-    const match: Record<string, any> = { propertyId: new Types.ObjectId(propertyId) };
+    const match: Record<string, any> = {
+      propertyId: new Types.ObjectId(propertyId),
+    };
 
     if (currentUser?.role === UserRole.REAL_ESTATE_AGENT) {
       match.propertyCreatedById = this.resolveUserId(currentUser);
@@ -533,17 +605,29 @@ export class PropertyEngagementService {
           _id: null,
           clicks: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.CLICK] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.CLICK] },
+                1,
+                0,
+              ],
             },
           },
           views: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.VIEW] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.VIEW] },
+                1,
+                0,
+              ],
             },
           },
           saves: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.SAVE] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.SAVE] },
+                1,
+                0,
+              ],
             },
           },
           totalEvents: { $sum: 1 },
@@ -571,17 +655,29 @@ export class PropertyEngagementService {
           _id: '$userId',
           clicks: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.CLICK] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.CLICK] },
+                1,
+                0,
+              ],
             },
           },
           views: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.VIEW] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.VIEW] },
+                1,
+                0,
+              ],
             },
           },
           saves: {
             $sum: {
-              $cond: [{ $eq: ['$eventType', PropertyEngagementEventType.SAVE] }, 1, 0],
+              $cond: [
+                { $eq: ['$eventType', PropertyEngagementEventType.SAVE] },
+                1,
+                0,
+              ],
             },
           },
           totalEvents: { $sum: 1 },
@@ -602,7 +698,9 @@ export class PropertyEngagementService {
       { $sort: { views: -1, clicks: -1, lastEventAt: -1 } },
     ]);
 
-    const userIds = usersAgg.map((item: any) => this.toSafeText(item.userId)).filter(Boolean);
+    const userIds = usersAgg
+      .map((item: any) => this.toSafeText(item.userId))
+      .filter(Boolean);
 
     const users = userIds.length
       ? await this.userModel
@@ -619,7 +717,8 @@ export class PropertyEngagementService {
 
       return {
         userId,
-        fullName: this.toSafeText(user?.fullName) || `User #${userId.slice(-6)}`,
+        fullName:
+          this.toSafeText(user?.fullName) || `User #${userId.slice(-6)}`,
         role: this.toSafeText(user?.role) || 'unknown',
         email: this.toSafeText(user?.email),
         clicks: Number(item.clicks) || 0,

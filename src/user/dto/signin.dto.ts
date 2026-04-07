@@ -12,4 +12,3 @@ export class SignInDto {
   @IsOptional()
   rememberMe?: boolean;
 }
-

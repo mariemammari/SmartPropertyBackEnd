@@ -5,14 +5,14 @@ import { BranchService } from './branch.service';
 import { BranchController } from './branch.controller';
 
 @Module({
-    imports: [
-        MongooseModule.forFeature([{ name: Branch.name, schema: BranchSchema }]),
-    ],
-    controllers: [BranchController],
-    providers: [BranchService],
-    exports: [
-        MongooseModule, // <-- ADD THIS: exports BranchModel to other modules
-        BranchService,  // optional: if other modules need BranchService too
-    ],
+  imports: [
+    MongooseModule.forFeature([{ name: Branch.name, schema: BranchSchema }]),
+  ],
+  controllers: [BranchController],
+  providers: [BranchService],
+  exports: [
+    MongooseModule, // <-- ADD THIS: exports BranchModel to other modules
+    BranchService, // optional: if other modules need BranchService too
+  ],
 })
 export class BranchModule {}

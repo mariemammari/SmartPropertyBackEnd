@@ -34,7 +34,9 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI') || 'mongodb://localhost:27017/smartproperty',
+        uri:
+          configService.get<string>('MONGODB_URI') ||
+          'mongodb://localhost:27017/smartproperty',
       }),
       inject: [ConfigService],
     }),
@@ -81,4 +83,4 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
   controllers: [AppController],
   providers: [AppService, LazyModuleLoader],
 })
-export class AppModule { }
+export class AppModule {}

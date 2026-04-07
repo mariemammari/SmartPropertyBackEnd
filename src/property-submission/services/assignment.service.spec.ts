@@ -68,9 +68,7 @@ describe('AssignmentService - Least Loaded Algorithm', () => {
       const result = await service.findBestAgentForAssignment('branch1');
 
       expect(result.success).toBe(true);
-      expect(result.assignedAgentId.toString()).toBe(
-        agent2._id.toString(),
-      );
+      expect(result.assignedAgentId.toString()).toBe(agent2._id.toString());
     });
 
     it('should break tie by oldest lastAssignedAt', async () => {
@@ -94,9 +92,7 @@ describe('AssignmentService - Least Loaded Algorithm', () => {
       const result = await service.findBestAgentForAssignment('branch1');
 
       expect(result.success).toBe(true);
-      expect(result.assignedAgentId.toString()).toBe(
-        agent1._id.toString(),
-      );
+      expect(result.assignedAgentId.toString()).toBe(agent1._id.toString());
     });
 
     it('should use _id as final tie-breaker', async () => {
@@ -128,9 +124,9 @@ describe('AssignmentService - Least Loaded Algorithm', () => {
     });
 
     it('should reject empty branchId', async () => {
-      await expect(
-        service.findBestAgentForAssignment(''),
-      ).rejects.toThrow('branchId is required');
+      await expect(service.findBestAgentForAssignment('')).rejects.toThrow(
+        'branchId is required',
+      );
     });
   });
 
@@ -150,10 +146,7 @@ describe('AssignmentService - Least Loaded Algorithm', () => {
         lastAssignedAt: expect.any(Date),
       });
 
-      const result = await service.assignListingToAgent(
-        listingId,
-        agentId,
-      );
+      const result = await service.assignListingToAgent(listingId, agentId);
 
       expect(mockListingModel.findByIdAndUpdate).toHaveBeenCalledWith(
         listingId,
@@ -179,7 +172,10 @@ describe('AssignmentService - Least Loaded Algorithm', () => {
       mockListingModel.findByIdAndUpdate.mockResolvedValue(null);
 
       await expect(
-        service.assignListingToAgent('999999999999999999999999', new Types.ObjectId()),
+        service.assignListingToAgent(
+          '999999999999999999999999',
+          new Types.ObjectId(),
+        ),
       ).rejects.toThrow('not found');
     });
   });

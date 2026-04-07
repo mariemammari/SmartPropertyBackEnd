@@ -1,94 +1,98 @@
-import { IsString, IsEmail, IsOptional, IsEnum, IsDateString, IsDate } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsOptional,
+  IsEnum,
+  IsDateString,
+  IsDate,
+} from 'class-validator';
 import { UserRole, UserStatus } from '../schemas/user.schema';
 import { RequiresBranchIfManagerOrAccountant } from '../decorators/requires-branch.decorator';
 // import { RequiresDobIfClient } from '../decorators/requires-dob-if-client.decorator';
 import { Type } from 'class-transformer';
 
 export class UpdateUserDto {
-    @IsOptional()
-    @IsString()
-    fullName?: string;
+  @IsOptional()
+  @IsString()
+  fullName?: string;
 
-    @IsOptional()
-    @IsString()
-    firstName?: string;
+  @IsOptional()
+  @IsString()
+  firstName?: string;
 
-    @IsOptional()
-    @IsString()
-    lastName?: string;
+  @IsOptional()
+  @IsString()
+  lastName?: string;
 
-    @IsOptional()
-    @IsEmail()
-    email?: string;
+  @IsOptional()
+  @IsEmail()
+  email?: string;
 
-    @IsOptional()
-    @IsString()
-    phone?: string;
+  @IsOptional()
+  @IsString()
+  phone?: string;
 
-    @IsOptional()
-    @IsString()
-    password?: string;
+  @IsOptional()
+  @IsString()
+  password?: string;
 
-    @IsOptional()
-    @IsString()
-    city?: string;
+  @IsOptional()
+  @IsString()
+  city?: string;
 
-    @IsOptional()
-    @IsString()
-    state?: string;
+  @IsOptional()
+  @IsString()
+  state?: string;
 
-    @IsOptional()
-    @IsString()
-    photo?: string;
+  @IsOptional()
+  @IsString()
+  photo?: string;
 
-    @IsOptional()
-    @IsEnum(UserRole)
-    role?: UserRole;
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
 
-    @IsOptional()
-    @IsString()
-    @RequiresBranchIfManagerOrAccountant()
-    branchId?: string;
+  @IsOptional()
+  @IsString()
+  @RequiresBranchIfManagerOrAccountant()
+  branchId?: string;
 
-    @IsOptional()
-    @IsEnum(UserStatus)
-    status?: UserStatus;
+  @IsOptional()
+  @IsEnum(UserStatus)
+  status?: UserStatus;
 
-    @IsOptional()
-    @IsString()
-    Ai_riskScore?: string;
+  @IsOptional()
+  @IsString()
+  Ai_riskScore?: string;
 
-    @IsOptional()
-    @IsString({ each: true })
-    documents?: string[];
+  @IsOptional()
+  @IsString({ each: true })
+  documents?: string[];
 
-    @IsOptional()
-    @IsString({ each: true })
-    managedProperties?: string[];
+  @IsOptional()
+  @IsString({ each: true })
+  managedProperties?: string[];
 
-    @IsOptional()
-    @IsString({ each: true })
-    savedProperties?: string[];
+  @IsOptional()
+  @IsString({ each: true })
+  savedProperties?: string[];
 
-    @IsOptional()
-    @IsString()
-    // @RequiresDobIfClient()
-    dateOfBirth?: string;
+  @IsOptional()
+  @IsString()
+  // @RequiresDobIfClient()
+  dateOfBirth?: string;
 
+  //mariem
+  @IsOptional()
+  @IsString()
+  resetPasswordToken?: string;
 
-    //mariem
-    @IsOptional()
-    @IsString()
-    resetPasswordToken?: string;
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  resetPasswordExpires?: Date; // ← Changed from string to Date
 
-    @IsOptional()
-    @IsDate()
-    @Type(() => Date)
-    resetPasswordExpires?: Date; // ← Changed from string to Date
-
-
-    @IsOptional()
-    @IsString()
-    signature?: string;
-
+  @IsOptional()
+  @IsString()
+  signature?: string;
 }

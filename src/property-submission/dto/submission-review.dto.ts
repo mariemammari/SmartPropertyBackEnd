@@ -1,9 +1,4 @@
-import {
-  IsMongoId,
-  IsOptional,
-  IsString,
-  IsEnum,
-} from 'class-validator';
+import { IsMongoId, IsOptional, IsString, IsEnum } from 'class-validator';
 import { ListingStatus } from '../../property-listing/schemas/property-listing.schema';
 
 /**

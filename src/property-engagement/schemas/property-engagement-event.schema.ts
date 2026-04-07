@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type PropertyEngagementEventDocument = PropertyEngagementEvent & Document;
+export type PropertyEngagementEventDocument = PropertyEngagementEvent &
+  Document;
 
 export enum PropertyEngagementEventType {
   CLICK = 'CLICK',
@@ -17,7 +18,12 @@ export class PropertyEngagementEvent {
   @Prop({ type: String, required: true, index: true })
   userId!: string;
 
-  @Prop({ type: String, enum: Object.values(PropertyEngagementEventType), required: true, index: true })
+  @Prop({
+    type: String,
+    enum: Object.values(PropertyEngagementEventType),
+    required: true,
+    index: true,
+  })
   eventType!: PropertyEngagementEventType;
 
   @Prop({ type: String, default: '' })
@@ -39,9 +45,15 @@ export class PropertyEngagementEvent {
   propertyTitleSnapshot!: string;
 }
 
-export const PropertyEngagementEventSchema = SchemaFactory.createForClass(PropertyEngagementEvent);
+export const PropertyEngagementEventSchema = SchemaFactory.createForClass(
+  PropertyEngagementEvent,
+);
 
-PropertyEngagementEventSchema.index({ propertyId: 1, eventType: 1, createdAt: -1 });
+PropertyEngagementEventSchema.index({
+  propertyId: 1,
+  eventType: 1,
+  createdAt: -1,
+});
 PropertyEngagementEventSchema.index({ userId: 1, createdAt: -1 });
 PropertyEngagementEventSchema.index({ propertyCreatedById: 1, createdAt: -1 });
 PropertyEngagementEventSchema.index({ propertyBranchId: 1, createdAt: -1 });

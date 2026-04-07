@@ -3,7 +3,10 @@ import { PropertyService } from './property.service';
 import { PropertyController } from './property.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Property, PropertySchema } from './schemas/property.schema';
-import { PropertyListing, PropertyListingSchema } from '../property-listing/schemas/property-listing.schema';
+import {
+  PropertyListing,
+  PropertyListingSchema,
+} from '../property-listing/schemas/property-listing.schema';
 import { User, UserSchema } from '../user/schemas/user.schema';
 import { NotificationModule } from '../notification/notification.module';
 import { RentalModule } from '../rental/rental.module';
@@ -18,8 +21,8 @@ import { RentalModule } from '../rental/rental.module';
       { name: User.name, schema: UserSchema },
     ]),
     RentalModule,
-    forwardRef(() => NotificationModule)
+    forwardRef(() => NotificationModule),
   ],
-  exports: [PropertyService]
+  exports: [PropertyService],
 })
-export class PropertyModule { }
+export class PropertyModule {}

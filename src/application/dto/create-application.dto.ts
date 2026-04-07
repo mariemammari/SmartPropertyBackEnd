@@ -1,4 +1,11 @@
-﻿import { IsString, IsOptional, IsNumber, IsNotEmpty, IsBoolean, IsDateString } from 'class-validator';
+﻿import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsNotEmpty,
+  IsBoolean,
+  IsDateString,
+} from 'class-validator';
 
 export class CreateApplicationDto {
   @IsString()

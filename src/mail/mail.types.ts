@@ -1,4 +1,4 @@
 export interface RentalPaymentEmailPayload {
-    subject: string;
-    body: string;
+  subject: string;
+  body: string;
 }

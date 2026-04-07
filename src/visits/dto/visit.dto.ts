@@ -1,6 +1,11 @@
 import {
-  IsString, IsEmail, IsOptional, IsEnum,
-  IsArray, IsDateString, IsMongoId,
+  IsString,
+  IsEmail,
+  IsOptional,
+  IsEnum,
+  IsArray,
+  IsDateString,
+  IsMongoId,
 } from 'class-validator';
 import { VisitStatus } from '../schema/visit.schema';
 export class CreateVisitDto {

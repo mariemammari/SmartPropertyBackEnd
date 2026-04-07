@@ -10,7 +10,12 @@ import {
   PropertyListing,
   PropertyListingDocument,
 } from '../../property-listing/schemas/property-listing.schema';
-import { User, UserDocument, UserRole, UserStatus } from '../../user/schemas/user.schema';
+import {
+  User,
+  UserDocument,
+  UserRole,
+  UserStatus,
+} from '../../user/schemas/user.schema';
 
 export interface AssignmentResult {
   success: boolean;
@@ -58,9 +63,7 @@ export class AssignmentService {
    *  - status = 'active'
    *  - branchId matches
    */
-  private async getEligibleAgents(
-    branchId: string,
-  ): Promise<UserDocument[]> {
+  private async getEligibleAgents(branchId: string): Promise<UserDocument[]> {
     return this.userModel.find({
       branchId: branchId,
       role: UserRole.REAL_ESTATE_AGENT,
@@ -87,9 +90,7 @@ export class AssignmentService {
     const eligibleAgents = await this.getEligibleAgents(branchId);
 
     if (eligibleAgents.length === 0) {
-      this.logger.warn(
-        `No eligible agents found for branchId: ${branchId}`,
-      );
+      this.logger.warn(`No eligible agents found for branchId: ${branchId}`);
       return {
         success: false,
         warning: 'No eligible agents available in this branch',

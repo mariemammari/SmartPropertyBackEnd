@@ -7,15 +7,15 @@ import { BranchModule } from '../branch/branch.module';
 import { User, UserSchema } from '../user/schemas/user.schema'; // Import User
 
 @Module({
-    imports: [
-        MongooseModule.forFeature([
-            { name: Complaint.name, schema: ComplaintSchema },
-            { name: User.name, schema: UserSchema }, // <-- ADD THIS
-        ]),
-        BranchModule, // This gives you BranchModel
-    ],
-    controllers: [ComplaintController],
-    providers: [ComplaintService],
-    exports: [ComplaintService],
+  imports: [
+    MongooseModule.forFeature([
+      { name: Complaint.name, schema: ComplaintSchema },
+      { name: User.name, schema: UserSchema }, // <-- ADD THIS
+    ]),
+    BranchModule, // This gives you BranchModel
+  ],
+  controllers: [ComplaintController],
+  providers: [ComplaintService],
+  exports: [ComplaintService],
 })
-export class ComplaintModule { }
+export class ComplaintModule {}

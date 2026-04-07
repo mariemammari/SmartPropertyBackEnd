@@ -1,11 +1,22 @@
 import {
-  IsString, IsEnum, IsOptional, IsNumber,
-  IsBoolean, IsMongoId, IsDate, Min, IsArray,
-  ValidateNested, IsObject,
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsNumber,
+  IsBoolean,
+  IsMongoId,
+  IsDate,
+  Min,
+  IsArray,
+  ValidateNested,
+  IsObject,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
-  ListingStatus, FurnishingStatus, Standing, PaymentTerms,
+  ListingStatus,
+  FurnishingStatus,
+  Standing,
+  PaymentTerms,
 } from '../schemas/property-listing.schema';
 
 // ─── Nested DTOs ──────────────────────────────────────────────────────────────
@@ -34,7 +45,10 @@ export class SalePoliciesDto {
   @IsString() @IsOptional() installmentDetails?: string;
   @IsBoolean() @IsOptional() mortgageAssistance?: boolean;
   @Type(() => Date) @IsDate() @IsOptional() handoverDate?: Date;
-  @IsArray() @IsString({ each: true }) @IsOptional() includedFixtures?: string[];
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  includedFixtures?: string[];
 }
 
 export class FeesDto {
@@ -72,17 +86,25 @@ export class CreatePropertyListingDto {
   @IsEnum(ListingStatus) @IsOptional() status?: ListingStatus;
 
   // ─── Policies (flat — no wrapper object) ───────────────────
-  @ValidateNested() @Type(() => ContractPoliciesDto) @IsOptional()
+  @ValidateNested()
+  @Type(() => ContractPoliciesDto)
+  @IsOptional()
   contractPolicies?: ContractPoliciesDto;
 
-  @ValidateNested() @Type(() => HousePoliciesDto) @IsOptional()
+  @ValidateNested()
+  @Type(() => HousePoliciesDto)
+  @IsOptional()
   housePolicies?: HousePoliciesDto;
 
-  @ValidateNested() @Type(() => SalePoliciesDto) @IsOptional()
+  @ValidateNested()
+  @Type(() => SalePoliciesDto)
+  @IsOptional()
   salePolicies?: SalePoliciesDto;
 
   // ─── Fees ──────────────────────────────────────────────────
-  @ValidateNested() @Type(() => FeesDto) @IsOptional()
+  @ValidateNested()
+  @Type(() => FeesDto)
+  @IsOptional()
   fees?: FeesDto;
 
   // ─── Publishing ────────────────────────────────────────────
@@ -112,16 +134,24 @@ export class UpdatePropertyListingDto {
 
   @Type(() => Date) @IsDate() @IsOptional() expiresAt?: Date;
 
-  @ValidateNested() @Type(() => ContractPoliciesDto) @IsOptional()
+  @ValidateNested()
+  @Type(() => ContractPoliciesDto)
+  @IsOptional()
   contractPolicies?: ContractPoliciesDto;
 
-  @ValidateNested() @Type(() => HousePoliciesDto) @IsOptional()
+  @ValidateNested()
+  @Type(() => HousePoliciesDto)
+  @IsOptional()
   housePolicies?: HousePoliciesDto;
 
-  @ValidateNested() @Type(() => SalePoliciesDto) @IsOptional()
+  @ValidateNested()
+  @Type(() => SalePoliciesDto)
+  @IsOptional()
   salePolicies?: SalePoliciesDto;
 
-  @ValidateNested() @Type(() => FeesDto) @IsOptional()
+  @ValidateNested()
+  @Type(() => FeesDto)
+  @IsOptional()
   fees?: FeesDto;
 
   // ─── Rental trigger fields ─────────────────────────────────────────

@@ -1,6 +1,13 @@
 import {
-  Controller, Get, Post, Patch, Delete,
-  Param, Body, HttpCode, HttpStatus,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { VisitsService } from './Visits.service';
 import { CreateVisitDto, UpdateVisitDto } from './dto/visit.dto';

@@ -25,7 +25,7 @@ import { UserRole } from './schemas/user.schema';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   /**
    * Create a new user (public registration)
@@ -203,11 +203,7 @@ export class UsersController {
       );
     }
 
-    await this.userService.changePassword(
-      userId,
-      currentPassword,
-      newPassword,
-    );
+    await this.userService.changePassword(userId, currentPassword, newPassword);
 
     return {
       message: 'Password changed successfully',
@@ -272,7 +268,6 @@ export class UsersController {
     await this.userService.deleteUser(id);
   }
 
-
   /**
    * Get branch for a specific manager
    */
@@ -281,20 +276,21 @@ export class UsersController {
   async getUserBranch(@Param('id') id: string): Promise<any> {
     const branchId = await this.userService.findManagerBranch(id);
     if (!branchId) {
-      throw new NotFoundException('User is not a branch manager or has no branch assigned');
+      throw new NotFoundException(
+        'User is not a branch manager or has no branch assigned',
+      );
     }
     return { branchId };
   }
 
-
   /**
- * Get all staff users (super_admin, branch_manager, real_estate_agent, accountant)
- */
+   * Get all staff users (super_admin, branch_manager, real_estate_agent, accountant)
+   */
   @Get('staff/all')
   @UseGuards(JwtAuthGuard)
   async getAllStaff(): Promise<any> {
     const users = await this.userService.findAllStaff();
-    const sanitizedUsers = users.map(user => {
+    const sanitizedUsers = users.map((user) => {
       const { password, ...result } = user.toObject();
       return result;
     });
@@ -319,7 +315,9 @@ export class UsersController {
     }
 
     if (currentUser.role !== UserRole.BRANCH_MANAGER) {
-      throw new BadRequestException('Only branch managers can access this endpoint');
+      throw new BadRequestException(
+        'Only branch managers can access this endpoint',
+      );
     }
 
     const branchId = currentUser.branchId;
@@ -329,7 +327,7 @@ export class UsersController {
 
     // Get all agents and accountants in this branch
     const branchStaff = await this.userService.findUsersByBranch(branchId);
-    const sanitizedUsers = branchStaff.map(user => {
+    const sanitizedUsers = branchStaff.map((user) => {
       const { password, ...result } = user.toObject();
       return result;
     });
@@ -348,7 +346,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   async getAllClients(): Promise<any> {
     const users = await this.userService.findAllClients();
-    const sanitizedUsers = users.map(user => {
+    const sanitizedUsers = users.map((user) => {
       const { password, ...result } = user.toObject();
       return result;
     });

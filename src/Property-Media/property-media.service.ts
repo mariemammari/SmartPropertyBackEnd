@@ -1,8 +1,16 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { v2 as cloudinary } from 'cloudinary';
-import { PropertyMedia, PropertyMediaDocument, MediaTag } from '../Property-Media/schemas/property-media.schema';
+import {
+  PropertyMedia,
+  PropertyMediaDocument,
+  MediaTag,
+} from '../Property-Media/schemas/property-media.schema';
 
 @Injectable()
 export class PropertyMediaService {
@@ -34,34 +42,36 @@ export class PropertyMediaService {
     for (const file of files) {
       // Upload to Cloudinary
       const uploaded = await new Promise<any>((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          {
-            folder:           `smart-property/${propertyId}`,
-            resource_type:    'image',
-            allowed_formats:  ['jpg', 'jpeg', 'png', 'webp'],
-            transformation:   [{ quality: 'auto', fetch_format: 'auto' }],
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          },
-        ).end(file.buffer);
+        cloudinary.uploader
+          .upload_stream(
+            {
+              folder: `smart-property/${propertyId}`,
+              resource_type: 'image',
+              allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+              transformation: [{ quality: 'auto', fetch_format: 'auto' }],
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            },
+          )
+          .end(file.buffer);
       });
 
       // Save to DB
       const isFirst = order === 0 && results.length === 0;
       const media = await new this.mediaModel({
-        propertyId:  new Types.ObjectId(propertyId),
-        listingId:   listingId ? new Types.ObjectId(listingId) : undefined,
-        uploadedBy:  new Types.ObjectId(uploadedBy),
-        url:         uploaded.secure_url,
-        publicId:    uploaded.public_id,
-        tag:         tag ?? MediaTag.OTHER,
+        propertyId: new Types.ObjectId(propertyId),
+        listingId: listingId ? new Types.ObjectId(listingId) : undefined,
+        uploadedBy: new Types.ObjectId(uploadedBy),
+        url: uploaded.secure_url,
+        publicId: uploaded.public_id,
+        tag: tag ?? MediaTag.OTHER,
         order,
-        isPrimary:   isFirst, // first uploaded image = primary
-        width:       uploaded.width,
-        height:      uploaded.height,
-        sizeKb:      Math.round(uploaded.bytes / 1024),
+        isPrimary: isFirst, // first uploaded image = primary
+        width: uploaded.width,
+        height: uploaded.height,
+        sizeKb: Math.round(uploaded.bytes / 1024),
       }).save();
 
       results.push(media);
@@ -76,7 +86,7 @@ export class PropertyMediaService {
     return this.mediaModel
       .find({
         propertyId: new Types.ObjectId(propertyId),
-        isDeleted:  false,
+        isDeleted: false,
       })
       .sort({ order: 1 })
       .exec();
@@ -129,10 +139,12 @@ export class PropertyMediaService {
     }
 
     // Soft delete in DB
-    await this.mediaModel.findByIdAndUpdate(id, {
-      isDeleted: true,
-      deletedAt: new Date(),
-    }).exec();
+    await this.mediaModel
+      .findByIdAndUpdate(id, {
+        isDeleted: true,
+        deletedAt: new Date(),
+      })
+      .exec();
 
     // If deleted was primary → set next one as primary
     if (media.isPrimary) {
@@ -140,7 +152,8 @@ export class PropertyMediaService {
         .findOne({ propertyId: media.propertyId, isDeleted: false })
         .sort({ order: 1 })
         .exec();
-      if (next) await this.mediaModel.findByIdAndUpdate(next._id, { isPrimary: true });
+      if (next)
+        await this.mediaModel.findByIdAndUpdate(next._id, { isPrimary: true });
     }
   }
 }

@@ -49,7 +49,7 @@ export class User {
   @Prop({ required: false })
   resetPasswordExpires?: Date;
 
-  // should be like this  
+  // should be like this
   // @Prop({ type: [String], default: [] })
   // properties: string[];
 
@@ -90,13 +90,15 @@ export class User {
   photo: string;
 
   @Prop({
-    type: [{
-      credentialID: String,
-      publicKey: String,
-      counter: Number,
-      transports: [String],
-      createdAt: { type: Date, default: Date.now }
-    }],
+    type: [
+      {
+        credentialID: String,
+        publicKey: String,
+        counter: Number,
+        transports: [String],
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
     default: [],
   })
   webauthnCredentials: {
@@ -122,4 +124,3 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
-

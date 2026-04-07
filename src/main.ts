@@ -69,7 +69,11 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
   console.log(`🚀 Application is running on: ${await app.getUrl()}`);
-  console.log(`📡 MongoDB URI: ${process.env.MONGODB_URI || 'mongodb://localhost:27017/smartproperty'}`);
-  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+  console.log(
+    `📡 MongoDB URI: ${process.env.MONGODB_URI || 'mongodb://localhost:27017/smartproperty'}`,
+  );
+  console.log(
+    `🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`,
+  );
 }
 bootstrap();

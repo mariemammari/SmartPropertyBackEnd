@@ -9,7 +9,7 @@ import { VisitsService } from '../visits/Visits.service';
     MongooseModule.forFeature([{ name: Visit.name, schema: VisitSchema }]),
   ],
   controllers: [VisitsController],
-  providers:   [VisitsService],
-  exports:     [VisitsService],
+  providers: [VisitsService],
+  exports: [VisitsService],
 })
 export class VisitsModule {}

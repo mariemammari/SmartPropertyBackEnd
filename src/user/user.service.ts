@@ -1,17 +1,37 @@
-import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-import { User, UserDocument, UserRole, UserStatus } from './schemas/user.schema';
+import {
+  User,
+  UserDocument,
+  UserRole,
+  UserStatus,
+} from './schemas/user.schema';
 import { SignUpDto } from './dto/signup.dto';
 import { UpdateUserDto } from './dto/update.dto';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async create(signUpDto: SignUpDto): Promise<UserDocument> {
-    const { fullName, firstName, lastName, email, phone, dateOfBirth, password, role, branchId } = signUpDto;
+    const {
+      fullName,
+      firstName,
+      lastName,
+      email,
+      phone,
+      dateOfBirth,
+      password,
+      role,
+      branchId,
+    } = signUpDto;
 
     console.log('Creating user with email:', email);
 
@@ -29,7 +49,9 @@ export class UserService {
 
     // Validate branchId for BRANCH_MANAGER
     if (actualRole === UserRole.BRANCH_MANAGER && !branchId) {
-      throw new BadRequestException('branchId is required for branch_manager role');
+      throw new BadRequestException(
+        'branchId is required for branch_manager role',
+      );
     }
 
     // Hash password
@@ -59,7 +81,14 @@ export class UserService {
     }
 
     // Add branchId for BRANCH_MANAGER, REAL_ESTATE_AGENT, and ACCOUNTANT roles
-    if (branchId && [UserRole.BRANCH_MANAGER, UserRole.REAL_ESTATE_AGENT, UserRole.ACCOUNTANT].includes(actualRole)) {
+    if (
+      branchId &&
+      [
+        UserRole.BRANCH_MANAGER,
+        UserRole.REAL_ESTATE_AGENT,
+        UserRole.ACCOUNTANT,
+      ].includes(actualRole)
+    ) {
       userData.branchId = branchId;
     }
 
@@ -77,11 +106,17 @@ export class UserService {
     return this.userModel.findById(id).exec();
   }
 
-  async validatePassword(password: string, hashedPassword: string): Promise<boolean> {
+  async validatePassword(
+    password: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
     return bcrypt.compare(password, hashedPassword);
   }
 
-  async updateUser(id: string, updateData: UpdateUserDto): Promise<UserDocument> {
+  async updateUser(
+    id: string,
+    updateData: UpdateUserDto,
+  ): Promise<UserDocument> {
     // Get existing user first
     const existingUser = await this.findById(id);
     if (!existingUser) {
@@ -97,18 +132,30 @@ export class UserService {
     }
 
     // If currently branch_manager and changing to something else, clear branchId
-    if (existingUser.role === UserRole.BRANCH_MANAGER && role && role !== UserRole.BRANCH_MANAGER) {
+    if (
+      existingUser.role === UserRole.BRANCH_MANAGER &&
+      role &&
+      role !== UserRole.BRANCH_MANAGER
+    ) {
       updateData.branchId = undefined;
     }
 
     // If changing TO branch_manager (from a different role), require branchId
-    if (role === UserRole.BRANCH_MANAGER && existingUser.role !== UserRole.BRANCH_MANAGER && !branchId) {
-      throw new BadRequestException('branchId is required when role is branch_manager');
+    if (
+      role === UserRole.BRANCH_MANAGER &&
+      existingUser.role !== UserRole.BRANCH_MANAGER &&
+      !branchId
+    ) {
+      throw new BadRequestException(
+        'branchId is required when role is branch_manager',
+      );
     }
 
     // dateOfBirth is allowed for all roles now
 
-    const user = await this.userModel.findByIdAndUpdate(id, updateData, { new: true });
+    const user = await this.userModel.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -116,10 +163,12 @@ export class UserService {
   }
 
   async findByResetToken(token: string): Promise<UserDocument | null> {
-    return this.userModel.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: new Date() },
-    }).exec();
+    return this.userModel
+      .findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: new Date() },
+      })
+      .exec();
   }
 
   async deleteUser(id: string): Promise<void> {
@@ -138,14 +187,14 @@ export class UserService {
   }
 
   /**
- * Find all users with staff roles (super_admin, branch_manager, real_estate_agent, accountant)
- */
+   * Find all users with staff roles (super_admin, branch_manager, real_estate_agent, accountant)
+   */
   async findAllStaff(): Promise<UserDocument[]> {
     const staffRoles = [
       UserRole.SUPER_ADMIN,
       UserRole.BRANCH_MANAGER,
       UserRole.REAL_ESTATE_AGENT,
-      UserRole.ACCOUNTANT
+      UserRole.ACCOUNTANT,
     ];
 
     return this.userModel.find({ role: { $in: staffRoles } }).exec();
@@ -162,15 +211,14 @@ export class UserService {
    * Find all staff users by branch (agents and accountants for a specific branch)
    */
   async findUsersByBranch(branchId: string): Promise<UserDocument[]> {
-    const staffRoles = [
-      UserRole.REAL_ESTATE_AGENT,
-      UserRole.ACCOUNTANT,
-    ];
+    const staffRoles = [UserRole.REAL_ESTATE_AGENT, UserRole.ACCOUNTANT];
 
-    return this.userModel.find({
-      branchId: branchId,
-      role: { $in: staffRoles }
-    }).exec();
+    return this.userModel
+      .find({
+        branchId: branchId,
+        role: { $in: staffRoles },
+      })
+      .exec();
   }
 
   /**
@@ -241,7 +289,10 @@ export class UserService {
   /**
    * Update user signature URL (signature already uploaded to Cloudinary by client)
    */
-  async updateSignatureUrl(userId: string, signatureUrl: string): Promise<string> {
+  async updateSignatureUrl(
+    userId: string,
+    signatureUrl: string,
+  ): Promise<string> {
     const user = await this.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -321,6 +372,4 @@ export class UserService {
 
     return base64Signature;
   }
-
 }
-

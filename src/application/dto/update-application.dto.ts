@@ -1,5 +1,16 @@
-﻿import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
-import { ApplicationStatus, RejectionType } from '../schemas/application.schema';
+﻿import {
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ValidateIf,
+} from 'class-validator';
+import {
+  ApplicationStatus,
+  RejectionType,
+} from '../schemas/application.schema';
 
 export class UpdateApplicationDto {
   @IsEnum(ApplicationStatus)
@@ -17,7 +28,11 @@ export class UpdateApplicationDto {
   @IsOptional()
   rejectionReason?: string;
 
-  @ValidateIf((o) => o.status === ApplicationStatus.REJECTED || o.status === ApplicationStatus.REQUEST_MORE_DOCUMENTS)
+  @ValidateIf(
+    (o) =>
+      o.status === ApplicationStatus.REJECTED ||
+      o.status === ApplicationStatus.REQUEST_MORE_DOCUMENTS,
+  )
   @IsArray()
   @IsString({ each: true })
   @MaxLength(200, { each: true })

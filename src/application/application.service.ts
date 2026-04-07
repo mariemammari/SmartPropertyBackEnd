@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import {
@@ -14,8 +18,9 @@ import { v2 as cloudinary } from 'cloudinary';
 @Injectable()
 export class ApplicationService {
   constructor(
-    @InjectModel(Application.name) private applicationModel: Model<ApplicationDocument>,
-  ) { }
+    @InjectModel(Application.name)
+    private applicationModel: Model<ApplicationDocument>,
+  ) {}
 
   async create(createDto: CreateApplicationDto): Promise<Application> {
     const blockedReapplication = await this.applicationModel.findOne({
@@ -60,9 +65,15 @@ export class ApplicationService {
   async findAllByAgent(agentId: string): Promise<Application[]> {
     return this.applicationModel
       .find({
-        $or: [{ agentId: new Types.ObjectId(agentId) }, { agentId: agentId as any }],
+        $or: [
+          { agentId: new Types.ObjectId(agentId) },
+          { agentId: agentId as any },
+        ],
       })
-      .populate('propertyId', 'title propertyType propertySubType price type city state size address location image images')
+      .populate(
+        'propertyId',
+        'title propertyType propertySubType price type city state size address location image images',
+      )
       .sort({ createdAt: -1 })
       .exec();
   }
@@ -70,20 +81,35 @@ export class ApplicationService {
   async findAllByClient(clientId: string): Promise<Application[]> {
     return this.applicationModel
       .find({
-        $or: [{ clientId: new Types.ObjectId(clientId) }, { clientId: clientId as any }],
+        $or: [
+          { clientId: new Types.ObjectId(clientId) },
+          { clientId: clientId as any },
+        ],
       })
-      .populate('propertyId', 'title propertyType propertySubType price type city state size address location image images')
+      .populate(
+        'propertyId',
+        'title propertyType propertySubType price type city state size address location image images',
+      )
       .sort({ createdAt: -1 })
       .exec();
   }
 
-  async findLatestByClientAndProperty(clientId: string, propertyId: string): Promise<Application | null> {
+  async findLatestByClientAndProperty(
+    clientId: string,
+    propertyId: string,
+  ): Promise<Application | null> {
     return this.applicationModel
       .findOne({
         propertyId,
-        $or: [{ clientId: new Types.ObjectId(clientId) }, { clientId: clientId as any }],
+        $or: [
+          { clientId: new Types.ObjectId(clientId) },
+          { clientId: clientId as any },
+        ],
       })
-      .populate('propertyId', 'title propertyType propertySubType price type city state size address location image images')
+      .populate(
+        'propertyId',
+        'title propertyType propertySubType price type city state size address location image images',
+      )
       .sort({ createdAt: -1 })
       .exec();
   }
@@ -91,7 +117,10 @@ export class ApplicationService {
   async findById(id: string): Promise<Application> {
     const application = await this.applicationModel
       .findById(id)
-      .populate('propertyId', 'title propertyType propertySubType price type city state size address location image images')
+      .populate(
+        'propertyId',
+        'title propertyType propertySubType price type city state size address location image images',
+      )
       .exec();
 
     if (!application) {
@@ -101,9 +130,18 @@ export class ApplicationService {
     return application;
   }
 
-  async updateStatus(id: string, updateDto: UpdateApplicationDto): Promise<Application> {
+  async updateStatus(
+    id: string,
+    updateDto: UpdateApplicationDto,
+  ): Promise<Application> {
     const normalizedChecklist = Array.isArray(updateDto.improveChecklist)
-      ? Array.from(new Set(updateDto.improveChecklist.map((item) => String(item || '').trim()).filter(Boolean)))
+      ? Array.from(
+          new Set(
+            updateDto.improveChecklist
+              .map((item) => String(item || '').trim())
+              .filter(Boolean),
+          ),
+        )
       : [];
 
     const updatePayload: Record<string, any> = {
@@ -111,12 +149,15 @@ export class ApplicationService {
     };
 
     if (updateDto.status === ApplicationStatus.REJECTED) {
-      updatePayload.rejectionType = updateDto.rejectionType || RejectionType.CAN_REAPPLY;
-      updatePayload.rejectionReason = updateDto.rejectionReason?.trim() || undefined;
+      updatePayload.rejectionType =
+        updateDto.rejectionType || RejectionType.CAN_REAPPLY;
+      updatePayload.rejectionReason =
+        updateDto.rejectionReason?.trim() || undefined;
       updatePayload.improveChecklist = normalizedChecklist;
     } else if (updateDto.status === ApplicationStatus.REQUEST_MORE_DOCUMENTS) {
       updatePayload.rejectionType = undefined;
-      updatePayload.rejectionReason = updateDto.rejectionReason?.trim() || undefined;
+      updatePayload.rejectionReason =
+        updateDto.rejectionReason?.trim() || undefined;
       updatePayload.improveChecklist = normalizedChecklist;
     } else {
       updatePayload.rejectionType = undefined;
@@ -147,7 +188,8 @@ export class ApplicationService {
       .populate({
         path: 'propertyId',
         match: { branchId },
-        select: 'title propertyType propertySubType price type city state size address location image images branchId',
+        select:
+          'title propertyType propertySubType price type city state size address location image images branchId',
       })
       .populate('clientId', 'name email phone')
       .populate('agentId', 'name email phone')
@@ -158,8 +200,14 @@ export class ApplicationService {
 
     // Sort by creation date (descending)
     return filteredApps.sort((a, b) => {
-      const aTime = (a as any).createdAt instanceof Date ? (a as any).createdAt.getTime() : 0;
-      const bTime = (b as any).createdAt instanceof Date ? (b as any).createdAt.getTime() : 0;
+      const aTime =
+        (a as any).createdAt instanceof Date
+          ? (a as any).createdAt.getTime()
+          : 0;
+      const bTime =
+        (b as any).createdAt instanceof Date
+          ? (b as any).createdAt.getTime()
+          : 0;
       return bTime - aTime;
     });
   }

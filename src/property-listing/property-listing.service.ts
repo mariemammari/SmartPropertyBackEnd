@@ -19,7 +19,7 @@ export class PropertyListingService {
     @InjectModel(PropertyListing.name)
     private listingModel: Model<PropertyListingDocument>,
     private readonly rentalService: RentalService,
-  ) { }
+  ) {}
 
   // ── Create ────────────────────────────────────────────────────────────────
   async create(dto: CreatePropertyListingDto): Promise<PropertyListing> {
@@ -42,7 +42,14 @@ export class PropertyListingService {
     page: number;
     pages: number;
   }> {
-    const { page = 1, limit = 10, propertyId, ownerId, agentId, status } = filters;
+    const {
+      page = 1,
+      limit = 10,
+      propertyId,
+      ownerId,
+      agentId,
+      status,
+    } = filters;
     const query: Record<string, any> = {};
 
     if (propertyId) query.propertyId = new Types.ObjectId(propertyId);
@@ -54,7 +61,10 @@ export class PropertyListingService {
     const total = await this.listingModel.countDocuments(query);
     const data = await this.listingModel
       .find(query)
-      .populate('propertyId', 'propertyType propertySubType city state size bedrooms bathrooms')
+      .populate(
+        'propertyId',
+        'propertyType propertySubType city state size bedrooms bathrooms',
+      )
       .populate('ownerId', 'name email phone')
       .populate('agentId', 'name email')
       .sort({ createdAt: -1 })
@@ -92,7 +102,10 @@ export class PropertyListingService {
   async findByBranch(branchId: string): Promise<PropertyListing[]> {
     return this.listingModel
       .find({ branchId: new Types.ObjectId(branchId) })
-      .populate('propertyId', 'propertyType propertySubType city state size bedrooms bathrooms')
+      .populate(
+        'propertyId',
+        'propertyType propertySubType city state size bedrooms bathrooms',
+      )
       .populate('agentId', 'name email')
       .populate('createdBy', 'name email')
       .sort({ createdAt: -1 })
@@ -108,9 +121,9 @@ export class PropertyListingService {
           $in: [
             ListingStatus.ACTIVE,
             ListingStatus.APPROVED,
-            ListingStatus.DRAFT,        // est ce vraiment on a "approving"
-            ListingStatus.PENDING_REVIEW // 
-          ]
+            ListingStatus.DRAFT, // est ce vraiment on a "approving"
+            ListingStatus.PENDING_REVIEW, //
+          ],
         },
       })
       .populate('agentId', 'name email')
@@ -120,7 +133,9 @@ export class PropertyListingService {
   }
 
   // ── Find Reference Number by Property ID ────────────────────────────────
-  async findReferenceByPropertyId(propertyId: string): Promise<{ referenceNumber: string } | null> {
+  async findReferenceByPropertyId(
+    propertyId: string,
+  ): Promise<{ referenceNumber: string } | null> {
     const listing = await this.listingModel
       .findOne({ propertyId: new Types.ObjectId(propertyId) })
       .select('referenceNumber')
@@ -144,14 +159,24 @@ export class PropertyListingService {
   }
 
   // ── Update ────────────────────────────────────────────────────────────────
-  async update(id: string, dto: UpdatePropertyListingDto): Promise<PropertyListing> {
+  async update(
+    id: string,
+    dto: UpdatePropertyListingDto,
+  ): Promise<PropertyListing> {
     const existing = await this.listingModel.findById(id).exec();
     if (!existing) throw new NotFoundException(`Listing ${id} not found`);
 
     // Extract rental trigger fields before applying update to listing
     const {
-      tenantId, durationMonths, paymentFrequencyMonths,
-      autoRenew, noticePeriodDays, contractSignedAt, moveInDate, moveOutDate, notes,
+      tenantId,
+      durationMonths,
+      paymentFrequencyMonths,
+      autoRenew,
+      noticePeriodDays,
+      contractSignedAt,
+      moveInDate,
+      moveOutDate,
+      notes,
       ...listingUpdate
     } = dto;
 
@@ -166,7 +191,10 @@ export class PropertyListingService {
     }
 
     // Auto-set reviewedAt when APPROVED or REJECTED
-    if (dto.status === ListingStatus.APPROVED || dto.status === ListingStatus.REJECTED) {
+    if (
+      dto.status === ListingStatus.APPROVED ||
+      dto.status === ListingStatus.REJECTED
+    ) {
       update.reviewedAt = new Date();
     }
 
@@ -175,19 +203,25 @@ export class PropertyListingService {
       .exec();
     if (!listing) throw new NotFoundException(`Listing ${id} not found`);
 
-    if (dto.status === ListingStatus.RENTED && existing.status !== ListingStatus.RENTED) {
-      await this.rentalService.createFromListingStatusChange(listing._id.toString(), {
-        propertyId: listing.propertyId.toString(),
-        tenantId,
-        durationMonths,
-        paymentFrequencyMonths,
-        autoRenew,
-        noticePeriodDays,
-        contractSignedAt,
-        moveInDate,
-        moveOutDate,
-        notes,
-      });
+    if (
+      dto.status === ListingStatus.RENTED &&
+      existing.status !== ListingStatus.RENTED
+    ) {
+      await this.rentalService.createFromListingStatusChange(
+        listing._id.toString(),
+        {
+          propertyId: listing.propertyId.toString(),
+          tenantId,
+          durationMonths,
+          paymentFrequencyMonths,
+          autoRenew,
+          noticePeriodDays,
+          contractSignedAt,
+          moveInDate,
+          moveOutDate,
+          notes,
+        },
+      );
     }
 
     return listing;
@@ -195,14 +229,16 @@ export class PropertyListingService {
 
   // ── Submit for Review ─────────────────────────────────────────────────────
   async submitForReview(id: string): Promise<PropertyListing> {
-    const listing = await this.listingModel.findByIdAndUpdate(
-      id,
-      {
-        status: ListingStatus.PENDING_REVIEW,
-        submittedForReviewAt: new Date(),
-      },
-      { new: true },
-    ).exec();
+    const listing = await this.listingModel
+      .findByIdAndUpdate(
+        id,
+        {
+          status: ListingStatus.PENDING_REVIEW,
+          submittedForReviewAt: new Date(),
+        },
+        { new: true },
+      )
+      .exec();
     if (!listing) throw new NotFoundException(`Listing ${id} not found`);
     return listing;
   }
@@ -222,7 +258,11 @@ export class PropertyListingService {
   async getStats(): Promise<any> {
     const statuses = Object.values(ListingStatus);
     const counts = await Promise.all(
-      statuses.map(s => this.listingModel.countDocuments({ status: s }).then(c => ({ [s]: c }))),
+      statuses.map((s) =>
+        this.listingModel
+          .countDocuments({ status: s })
+          .then((c) => ({ [s]: c })),
+      ),
     );
     const total = await this.listingModel.countDocuments();
     return { total, ...Object.assign({}, ...counts) };

@@ -1,4 +1,12 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  SubscribeMessage,
+  MessageBody,
+  ConnectedSocket,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -22,29 +30,36 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(
     private readonly chatService: ChatService,
-    @InjectModel('User') private userModel: Model<UserDocument>
+    @InjectModel('User') private userModel: Model<UserDocument>,
   ) {}
 
   async handleConnection(client: Socket) {
     const userId = client.handshake.query.userId as string;
-    
+
     // Check if userId is valid and not the string "undefined" or "null"
     if (userId && userId !== 'undefined' && userId !== 'null') {
       // Join a room for this user to support multiple connections (different components/tabs)
       client.join(userId);
       this.connectedUsers[userId] = client.id; // Still keep tracks of "active" for status simple checks
-      
-      console.log(`User ${userId} connected with socket ${client.id} and joined room ${userId}`);
-      
+
+      console.log(
+        `User ${userId} connected with socket ${client.id} and joined room ${userId}`,
+      );
+
       try {
         // Update lastSeen and broadcast online status
-        await this.userModel.findByIdAndUpdate(userId, { lastSeen: new Date() });
+        await this.userModel.findByIdAndUpdate(userId, {
+          lastSeen: new Date(),
+        });
         this.server.emit('userStatus', { userId, isOnline: true });
 
         // Send current online users to this specific client
         client.emit('initialStatuses', Object.keys(this.connectedUsers));
       } catch (error) {
-        console.error(`Error updating status for user ${userId}:`, error.message);
+        console.error(
+          `Error updating status for user ${userId}:`,
+          error.message,
+        );
       }
     } else {
       console.warn(`Connection attempt with invalid userId: ${userId}`);
@@ -54,11 +69,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async handleDisconnect(client: Socket) {
-    const userId = Object.keys(this.connectedUsers).find(key => this.connectedUsers[key] === client.id);
+    const userId = Object.keys(this.connectedUsers).find(
+      (key) => this.connectedUsers[key] === client.id,
+    );
     if (userId) {
       delete this.connectedUsers[userId];
       console.log(`User ${userId} disconnected`);
-      
+
       // Update lastSeen and broadcast offline status
       const lastSeen = new Date();
       await this.userModel.findByIdAndUpdate(userId, { lastSeen });
@@ -68,22 +85,34 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('checkStatus')
   handleCheckStatus(@MessageBody() payload: { userIds: string[] }) {
-    const statuses = payload.userIds.map(id => ({
+    const statuses = payload.userIds.map((id) => ({
       userId: id,
-      isOnline: !!this.connectedUsers[id]
+      isOnline: !!this.connectedUsers[id],
     }));
     return statuses;
   }
 
   @SubscribeMessage('sendMessage')
   async handleMessage(
-    @MessageBody() payload: { conversationId: string; senderId: string; content: string; receiverId: string },
+    @MessageBody()
+    payload: {
+      conversationId: string;
+      senderId: string;
+      content: string;
+      receiverId: string;
+    },
     @ConnectedSocket() client: Socket,
   ) {
     // Update sender's last activity
-    await this.userModel.findByIdAndUpdate(payload.senderId, { lastSeen: new Date() });
+    await this.userModel.findByIdAndUpdate(payload.senderId, {
+      lastSeen: new Date(),
+    });
     // Save to database
-    const message = await this.chatService.saveMessage(payload.conversationId, payload.senderId, payload.content);
+    const message = await this.chatService.saveMessage(
+      payload.conversationId,
+      payload.senderId,
+      payload.content,
+    );
 
     // Broadcast to the sender via ack/emit back
     client.emit('receiveMessage', message);
@@ -94,9 +123,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // Notifier le receiver d'un nouveau message pour incrémenter le compteur
       this.server.to(payload.receiverId).emit('newMessage', message);
       // Also notify about new message in conversation list
-      this.server.to(payload.receiverId).emit('conversationUpdated', { conversationId: payload.conversationId, lastMessage: message });
+      this.server.to(payload.receiverId).emit('conversationUpdated', {
+        conversationId: payload.conversationId,
+        lastMessage: message,
+      });
     }
-    
+
     return message;
   }
 
@@ -109,21 +141,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await this.chatService.markAsRead(payload.conversationId, payload.userId);
 
     // Notifier l'autre participant que les messages ont été lus
-    const conversation = await this.chatService.getConversationById(payload.conversationId);
+    const conversation = await this.chatService.getConversationById(
+      payload.conversationId,
+    );
     if (conversation) {
-      const otherParticipant = conversation.participants.find(
-        (p: any) => {
-          const pId = p._id ? p._id.toString() : p.toString();
-          return pId !== payload.userId;
-        }
-      );
+      const otherParticipant = conversation.participants.find((p: any) => {
+        const pId = p._id ? p._id.toString() : p.toString();
+        return pId !== payload.userId;
+      });
       if (otherParticipant) {
-        const otherId = (otherParticipant as any)._id ? (otherParticipant as any)._id.toString() : otherParticipant.toString();
-        this.server.to(otherId).emit('messageRead', { conversationId: payload.conversationId });
+        const otherId = (otherParticipant as any)._id
+          ? (otherParticipant as any)._id.toString()
+          : otherParticipant.toString();
+        this.server
+          .to(otherId)
+          .emit('messageRead', { conversationId: payload.conversationId });
       }
     }
 
     // Notifier TOUS les sockets de l'utilisateur actuel (propre room)
-    this.server.to(payload.userId).emit('messageRead', { conversationId: payload.conversationId });
+    this.server
+      .to(payload.userId)
+      .emit('messageRead', { conversationId: payload.conversationId });
   }
 }

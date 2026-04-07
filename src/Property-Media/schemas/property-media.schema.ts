@@ -4,21 +4,20 @@ import { Document, Types } from 'mongoose';
 export type PropertyMediaDocument = PropertyMedia & Document;
 
 export enum MediaTag {
-  EXTERIOR    = 'exterior',
+  EXTERIOR = 'exterior',
   LIVING_ROOM = 'living_room',
-  BEDROOM     = 'bedroom',
-  KITCHEN     = 'kitchen',
-  BATHROOM    = 'bathroom',
-  BALCONY     = 'balcony',
-  GARDEN      = 'garden',
-  PARKING     = 'parking',
-  POOL        = 'pool',
-  OTHER       = 'other',
+  BEDROOM = 'bedroom',
+  KITCHEN = 'kitchen',
+  BATHROOM = 'bathroom',
+  BALCONY = 'balcony',
+  GARDEN = 'garden',
+  PARKING = 'parking',
+  POOL = 'pool',
+  OTHER = 'other',
 }
 
 @Schema({ timestamps: true, collection: 'property_media' })
 export class PropertyMedia {
-
   @Prop({ type: Types.ObjectId, ref: 'Property', required: true, index: true })
   propertyId: Types.ObjectId;
 
@@ -29,24 +28,24 @@ export class PropertyMedia {
   uploadedBy: Types.ObjectId;
 
   // ─── File ─────────────────────────────────────────────────────
-  @Prop({ required: true }) url:      string;
-  @Prop()                   publicId: string;
+  @Prop({ required: true }) url: string;
+  @Prop() publicId: string;
 
   @Prop({ enum: MediaTag, default: MediaTag.OTHER })
   tag: MediaTag;
 
   // ─── Display ──────────────────────────────────────────────────
-  @Prop({ default: 0, min: 0 }) order:     number;
-  @Prop({ default: false })     isPrimary: boolean;
+  @Prop({ default: 0, min: 0 }) order: number;
+  @Prop({ default: false }) isPrimary: boolean;
 
   // ─── Dimensions ───────────────────────────────────────────────
-  @Prop({ min: 0 }) width:  number;
+  @Prop({ min: 0 }) width: number;
   @Prop({ min: 0 }) height: number;
   @Prop({ min: 0 }) sizeKb: number;
 
   // ─── Soft delete ──────────────────────────────────────────────
   @Prop({ default: false }) isDeleted: boolean;
-  @Prop()                   deletedAt: Date;
+  @Prop() deletedAt: Date;
 }
 
 export const PropertyMediaSchema = SchemaFactory.createForClass(PropertyMedia);

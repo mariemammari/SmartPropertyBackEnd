@@ -27,19 +27,18 @@ describe('PropertySubmissionService - Client Submission Flow', () => {
   const branchId = '777777777777777777777777';
   const agentId = '888888888888888888888888';
 
-  const createMockSubmissionDto =
-    (): CreatePropertySubmissionDto => ({
-      branchId,
-      propertyType: PropertyType.VILLA,
-      type: TransactionType.SALE,
-      title: 'Beautiful Villa',
-      price: 500000,
-      bedrooms: 4,
-      bathrooms: 2,
-      city: 'Tunis',
-      lat: 36.8,
-      lng: 10.1,
-    });
+  const createMockSubmissionDto = (): CreatePropertySubmissionDto => ({
+    branchId,
+    propertyType: PropertyType.VILLA,
+    type: TransactionType.SALE,
+    title: 'Beautiful Villa',
+    price: 500000,
+    bedrooms: 4,
+    bathrooms: 2,
+    city: 'Tunis',
+    lat: 36.8,
+    lng: 10.1,
+  });
 
   beforeEach(async () => {
     mockPropertyModel = {
@@ -88,9 +87,7 @@ describe('PropertySubmissionService - Client Submission Flow', () => {
       ],
     }).compile();
 
-    service = module.get<PropertySubmissionService>(
-      PropertySubmissionService,
-    );
+    service = module.get<PropertySubmissionService>(PropertySubmissionService);
     assignmentService = module.get<AssignmentService>(AssignmentService);
   });
 
@@ -99,9 +96,9 @@ describe('PropertySubmissionService - Client Submission Flow', () => {
       const dto = createMockSubmissionDto();
       dto.branchId = '';
 
-      await expect(
-        service.submitProperty(clientId, dto),
-      ).rejects.toThrow('Valid branchId is required');
+      await expect(service.submitProperty(clientId, dto)).rejects.toThrow(
+        'Valid branchId is required',
+      );
     });
 
     it('should create property with inactive status', async () => {
@@ -155,9 +152,7 @@ describe('PropertySubmissionService - Client Submission Flow', () => {
         save: jest.fn().mockResolvedValue({}),
       };
 
-      mockPropertyModel.create = jest
-        .fn()
-        .mockReturnValue(mockProperty);
+      mockPropertyModel.create = jest.fn().mockReturnValue(mockProperty);
 
       const mockListing = {
         _id: new Types.ObjectId(),
@@ -198,9 +193,7 @@ describe('PropertySubmissionService - Client Submission Flow', () => {
         save: jest.fn().mockResolvedValue({}),
       };
 
-      mockPropertyModel.create = jest
-        .fn()
-        .mockReturnValue(mockProperty);
+      mockPropertyModel.create = jest.fn().mockReturnValue(mockProperty);
 
       const mockListing = {
         _id: new Types.ObjectId(),
@@ -259,7 +252,9 @@ describe('PropertySubmissionService - Client Submission Flow', () => {
       );
 
       expect(result.status).toBe(ListingStatus.APPROVED);
-      expect(mockListingModel.findById).toHaveBeenCalledWith(listingId.toString());
+      expect(mockListingModel.findById).toHaveBeenCalledWith(
+        listingId.toString(),
+      );
       expect(mockPropertyModel.findByIdAndUpdate).toHaveBeenCalledWith(
         mockListing.propertyId,
         { status: PropertyStatus.AVAILABLE },

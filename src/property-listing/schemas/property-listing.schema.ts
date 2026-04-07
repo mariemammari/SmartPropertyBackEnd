@@ -16,7 +16,7 @@ export enum ListingStatus {
 }
 
 export enum AssignmentStatus {
-  ASSIGNED   = 'assigned',
+  ASSIGNED = 'assigned',
   UNASSIGNED = 'unassigned',
 }
 
@@ -89,7 +89,6 @@ const FeesSchema = SchemaFactory.createForClass(Fees);
 
 @Schema({ timestamps: true, collection: 'property_listings' })
 export class PropertyListing {
-
   @Prop({ type: Types.ObjectId, ref: 'Property', required: true })
   propertyId!: Types.ObjectId;
 
@@ -171,7 +170,8 @@ export class PropertyListing {
   lastAssignedAt!: Date | null;
 }
 
-export const PropertyListingSchema = SchemaFactory.createForClass(PropertyListing);
+export const PropertyListingSchema =
+  SchemaFactory.createForClass(PropertyListing);
 
 // ─── Indexes ─────────────────────────────────────────────────────────────────
 PropertyListingSchema.index({ propertyId: 1 });

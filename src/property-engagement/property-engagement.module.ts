@@ -15,7 +15,10 @@ import { NotificationsModule } from '../notifications/notifications.module';
   imports: [
     NotificationsModule,
     MongooseModule.forFeature([
-      { name: PropertyEngagementEvent.name, schema: PropertyEngagementEventSchema },
+      {
+        name: PropertyEngagementEvent.name,
+        schema: PropertyEngagementEventSchema,
+      },
       { name: Property.name, schema: PropertySchema },
       { name: User.name, schema: UserSchema },
     ]),

@@ -6,14 +6,23 @@ export class AiController {
   constructor(private readonly aiService: AiService) {}
 
   @Post('chat')
-  async chat(@Body() body: { prompt: string; history?: { role: string; content: string }[] }) {
+  async chat(
+    @Body()
+    body: {
+      prompt: string;
+      history?: { role: string; content: string }[];
+    },
+  ) {
     const { prompt, history } = body;
     if (!prompt) {
       throw new BadRequestException('Prompt is required');
     }
 
     try {
-      const response = await this.aiService.generateResponse(prompt, history || []);
+      const response = await this.aiService.generateResponse(
+        prompt,
+        history || [],
+      );
       return { response };
     } catch (error) {
       throw new BadRequestException(error.message);

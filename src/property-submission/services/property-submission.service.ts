@@ -206,7 +206,9 @@ export class PropertySubmissionService {
         // No eligible agent: leave unassigned
         assignmentWarning = assignmentResult.warning;
 
-        this.logger.warn(`Could not assign listing ${savedListing._id}: ${assignmentWarning}`);
+        this.logger.warn(
+          `Could not assign listing ${savedListing._id}: ${assignmentWarning}`,
+        );
 
         return {
           listing: savedListing,
@@ -214,7 +216,8 @@ export class PropertySubmissionService {
         };
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       this.logger.error(
         `Error during assignment for listing ${savedListing._id}: ${errorMessage}`,
       );
@@ -259,7 +262,10 @@ export class PropertySubmissionService {
     const total = await this.listingModel.countDocuments(query);
     const data = await this.listingModel
       .find(query)
-      .populate('propertyId', 'title propertyType propertySubType city state neighborhood address bedrooms bathrooms size')
+      .populate(
+        'propertyId',
+        'title propertyType propertySubType city state neighborhood address bedrooms bathrooms size',
+      )
       .populate('ownerId', 'fullName email phone')
       .populate('createdBy', 'fullName email')
       .sort({ assignedAt: -1 })
@@ -316,9 +322,7 @@ export class PropertySubmissionService {
       status: PropertyStatus.AVAILABLE,
     });
 
-    this.logger.log(
-      `Agent ${agentId} approved listing ${listingId}`,
-    );
+    this.logger.log(`Agent ${agentId} approved listing ${listingId}`);
 
     return updatedListing;
   }
@@ -373,7 +377,9 @@ export class PropertySubmissionService {
   /**
    * Get submission details (for agent or admin).
    */
-  async getSubmissionDetails(listingId: string): Promise<PropertyListingDocument> {
+  async getSubmissionDetails(
+    listingId: string,
+  ): Promise<PropertyListingDocument> {
     const listing = await this.listingModel
       .findById(listingId)
       .populate('propertyId')

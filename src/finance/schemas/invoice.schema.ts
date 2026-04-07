@@ -59,10 +59,10 @@ export class Invoice {
   items: InvoiceItem[];
 
   @Prop({ required: true })
-  subtotal: number;  // HT
+  subtotal: number; // HT
 
   @Prop({ required: false, default: 0 })
-  htAmount?: number;  // HT (même que subtotal pour compatibilité)
+  htAmount?: number; // HT (même que subtotal pour compatibilité)
 
   @Prop({ required: false, default: 0 })
   vatAmount?: number;
@@ -71,7 +71,7 @@ export class Invoice {
   vatRate?: number;
 
   @Prop({ required: true })
-  total: number;  // TTC
+  total: number; // TTC
 
   @Prop({ required: true })
   paid: number;

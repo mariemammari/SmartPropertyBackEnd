@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -32,7 +42,10 @@ export class ChatController {
   }
 
   @Post('mark-read/:conversationId')
-  async markAsRead(@Request() req, @Param('conversationId') conversationId: string) {
+  async markAsRead(
+    @Request() req,
+    @Param('conversationId') conversationId: string,
+  ) {
     const userId = req.user.userId || req.user._id || req.user.sub;
     await this.chatService.markAsRead(conversationId, userId);
     return { success: true };

@@ -43,7 +43,7 @@ export enum PropertyCondition {
 export enum PropertyStatus {
   AVAILABLE = 'available',
   RENTED = 'rented',
-  RENTAL_ENDED = 'rental_ended',  // Property lease ended, awaiting readiness confirmation
+  RENTAL_ENDED = 'rental_ended', // Property lease ended, awaiting readiness confirmation
   SOLD = 'sold',
   INACTIVE = 'inactive',
 }
@@ -52,7 +52,6 @@ export enum PropertyStatus {
 
 @Schema({ timestamps: true, collection: 'properties' })
 export class Property {
-
   // ─── Classification (replaces title) ────────────────────────
   // propertyType IS the identifier — e.g. "Villa à Carthage, S+3"
   @Prop({ required: true, enum: PropertyType, index: true })
@@ -128,15 +127,17 @@ export class Property {
 
   // GeoJSON Point — used for $near queries
 
-  @Prop(raw({
-    type: {
-      type: String,
-      enum: ['Point'],
-    },
-    coordinates: {
-      type: [Number],
-    },
-  }))
+  @Prop(
+    raw({
+      type: {
+        type: String,
+        enum: ['Point'],
+      },
+      coordinates: {
+        type: [Number],
+      },
+    }),
+  )
   location?: { type: string; coordinates: number[] };
   // ─── Creator ─────────────────────────────────────────────────
   // Agent who entered the property on behalf of the owner

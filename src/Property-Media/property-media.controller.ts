@@ -1,7 +1,16 @@
 import {
-  Controller, Get, Post, Patch, Delete,
-  Param, Body, UploadedFiles, UseInterceptors,
-  HttpCode, HttpStatus, Query,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  UploadedFiles,
+  UseInterceptors,
+  HttpCode,
+  HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -31,10 +40,16 @@ export class PropertyMediaController {
     @UploadedFiles() files: Express.Multer.File[],
     @Body('propertyId') propertyId: string,
     @Body('uploadedBy') uploadedBy: string,
-    @Body('listingId')  listingId?: string,
-    @Body('tag')        tag?: MediaTag,
+    @Body('listingId') listingId?: string,
+    @Body('tag') tag?: MediaTag,
   ) {
-    return this.mediaService.uploadImages(files, propertyId, uploadedBy, listingId, tag);
+    return this.mediaService.uploadImages(
+      files,
+      propertyId,
+      uploadedBy,
+      listingId,
+      tag,
+    );
   }
 
   // GET /property-media/property/:propertyId
@@ -51,10 +66,7 @@ export class PropertyMediaController {
 
   // PATCH /property-media/:id/primary
   @Patch(':id/primary')
-  setPrimary(
-    @Param('id') id: string,
-    @Body('propertyId') propertyId: string,
-  ) {
+  setPrimary(@Param('id') id: string, @Body('propertyId') propertyId: string) {
     return this.mediaService.setPrimary(id, propertyId);
   }
 

@@ -39,7 +39,9 @@ describe('PropertyController', () => {
 
   it('create: should set createdBy for real estate agent', async () => {
     const dto: any = { ownerId: 'owner-1' };
-    const req = { user: { userId: 'agent-1', role: UserRole.REAL_ESTATE_AGENT } } as any;
+    const req = {
+      user: { userId: 'agent-1', role: UserRole.REAL_ESTATE_AGENT },
+    } as any;
 
     await controller.create(dto, req);
 
@@ -61,7 +63,9 @@ describe('PropertyController', () => {
 
   it('findAll: should force createdBy filter for agent', async () => {
     const filters: any = { page: 1 };
-    const req = { user: { userId: 'agent-9', role: UserRole.REAL_ESTATE_AGENT } } as any;
+    const req = {
+      user: { userId: 'agent-9', role: UserRole.REAL_ESTATE_AGENT },
+    } as any;
 
     await controller.findAll(filters, req);
 
@@ -71,7 +75,9 @@ describe('PropertyController', () => {
   });
 
   it('findMine: should route to findByAgent for agent', async () => {
-    const req = { user: { userId: 'agent-2', role: UserRole.REAL_ESTATE_AGENT } } as any;
+    const req = {
+      user: { userId: 'agent-2', role: UserRole.REAL_ESTATE_AGENT },
+    } as any;
 
     await controller.findMine(req);
 
