@@ -931,7 +931,11 @@ export class RentalService {
     } else if (userRole === UserRole.SUPER_ADMIN) {
       accountantId = requester.userId;
     } else {
-      if (!this.isParticipantUser(rental, requester.userId)) {
+      const userId = requester.userId;
+      if (!userId) {
+        throw new ForbiddenException('You do not have permission to access this rental');
+      }
+      if (!this.isParticipantUser(rental, userId)) {
         throw new ForbiddenException('You do not have permission to access this rental');
       }
     }
