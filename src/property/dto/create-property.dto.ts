@@ -181,6 +181,11 @@ export class CreatePropertyDto {
   @IsObject()
   @IsOptional()
   customFields?: Record<string, any>; // flexible key-value pairs
+
+  // ─── 3D Photo ────────────────────────────────────────────────
+  @IsString()
+  @IsOptional()
+  photo3D?: string;
 }
 
 export class UpdatePropertyDto {
@@ -244,6 +249,11 @@ export class UpdatePropertyDto {
   @IsObject()
   @IsOptional()
   customFields?: Record<string, any>; // flexible key-value pairs
+
+  // ─── 3D Photo ────────────────────────────────────────────────
+  @IsString()
+  @IsOptional()
+  photo3D?: string;
 }
 
 export class PropertyFilterDto {

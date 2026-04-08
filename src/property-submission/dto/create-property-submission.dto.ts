@@ -223,4 +223,9 @@ export class CreatePropertySubmissionDto {
   @IsObject()
   @IsOptional()
   customFields?: Record<string, any>;
+
+  // ─── 3D Photo ────────────────────────────────────────────────
+  @IsString()
+  @IsOptional()
+  photo3D?: string;
 }

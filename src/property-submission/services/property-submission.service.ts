@@ -69,6 +69,8 @@ export class PropertySubmissionService {
     // Verify branchId exists (basic check)
     // In production, you might want to validate it more thoroughly
     const branchIdObj = new Types.ObjectId(dto.branchId);
+    const normalizedPhoto3D =
+      typeof dto.photo3D === 'string' ? dto.photo3D.trim() : undefined;
 
     // ─── Create Property ────────────────────────────────────────
     const propertyData = {
@@ -110,6 +112,7 @@ export class PropertySubmissionService {
       createdBy: new Types.ObjectId(clientId), // Client created it themselves
       branchId: dto.branchId,
       agent_id: null, // Will be set by agent later
+      photo3D: normalizedPhoto3D || undefined,
     };
 
     // Add GeoJSON if coordinates provided
