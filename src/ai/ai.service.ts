@@ -406,6 +406,7 @@ export class AiService {
   private tryKeywordNavigation(
     transcript: string,
     role: string,
+    currentPath: string = '',
   ): VoiceNavigationResult | null {
     const raw = this.normalizeVoiceTranscript(transcript);
     const t = raw.toLowerCase().replace(/\s+/g, ' ');
@@ -508,6 +509,18 @@ export class AiService {
       return { action: 'navigate', target, message: 'Opening your profile.' };
     }
 
+    const wantsContact =
+      /\b(contact|contact\s+us|contact\s+page)\b/.test(t) ||
+      /^(go to|take me to|open|navigate to)\s+contact$/i.test(raw);
+
+    if (wantsContact) {
+      return {
+        action: 'navigate',
+        target: '/front-office/contact',
+        message: 'Opening the contact page.',
+      };
+    }
+
     if (role === 'client') {
       if (
         /\b(dashboard|my dashboard|client (home|dashboard))\b/.test(t) ||
@@ -548,6 +561,163 @@ export class AiService {
           action: 'navigate',
           target: '/client-space/complaints',
           message: 'Opening complaints.',
+        };
+      }
+      if (/\b(add\s+property|add\s+new\s+property|create\s+property|new\s+property|post\s+property|list\s+property)\b/.test(t)) {
+        return {
+          action: 'navigate',
+          target: '/client-space/properties/add',
+          message: 'Opening property creation form.',
+        };
+      }
+    }
+
+    // Branch detail page commands
+    if (currentPath.includes('/front-office/branches/')) {
+      // Call branch
+      if (/\b(call|phone|call\s+the\s+branch|call\s+branch|dial)\b/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'branch-call',
+          message: 'Calling the branch.',
+        };
+      }
+
+      // Send email
+      if (/\b(email|send\s+e-mail|send\s+an\s+e-mail|message|contact\s+by\s+e-mail)\b/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'branch-email',
+          message: 'Opening email.',
+        };
+      }
+
+      // Get directions
+      if (/\b(directions|map|navigate|show\s+map|get\s+directions|navigate\s+to|how\s+to\s+get|where\s+is)\b/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'branch-directions',
+          message: 'Opening directions.',
+        };
+      }
+
+      // View properties
+      if (/\b(properties|browse\s+properties|see\s+properties|view\s+properties|show\s+properties|listings)\b/.test(t) && !/\bback\b/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'branch-view-properties',
+          message: 'Showing properties for this branch.',
+        };
+      }
+
+      // Back to branches
+      if (/\b(back|go\s+back|back\s+to\s+branches|previous|branches\s+list)\b/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'branch-back',
+          message: 'Going back to branches.',
+        };
+      }
+    }
+
+    // Property detail page commands
+    if (currentPath.includes('/front-office/property-detail/')) {
+      // Like property
+      if (/\b(like|like\s+this|like\s+this\s+property)\b/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'property-like',
+          message: 'Liked the property.',
+        };
+      }
+
+      // Dislike property
+      if (/\b(dislike|unlike|don't\s+like|not\s+interested)\b/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'property-like',
+          message: 'Removed from favorites.',
+        };
+      }
+
+      // Copy link
+      if (/\b(copy\s+link|copy\s+the\s+link|copy\s+url)\b/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'property-copy-link',
+          message: 'Link copied to clipboard.',
+        };
+      }
+
+      // Share via WhatsApp
+      if (/\b(share\s+via\s+whatsapp|whatsapp|send\s+via\s+whatsapp|share\s+whatsapp)\b/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'property-share-whatsapp',
+          message: 'Opening WhatsApp to share.',
+        };
+      }
+
+      // Schedule visit
+      if (/\b(schedule\s+visit|book\s+visit|visit|schedule|make\s+appointment)\b/.test(t) && !/cancel/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'open-schedule-visit',
+          message: 'Opening visit scheduling.',
+        };
+      }
+
+      // Apply
+      if (/\b(apply|apply\s+now|submit\s+application)\b/.test(t) && !/cancel/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'open-apply-modal',
+          message: 'Opening application form.',
+        };
+      }
+
+      // Call real estate agent
+      if (/\b(call|phone|call\s+agent|call\s+real\s+estate\s+agent)\b/.test(t) && !/whatsapp/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'property-call-agent',
+          message: 'Calling the real estate agent.',
+        };
+      }
+
+      // WhatsApp real estate agent
+      if (/\b(whatsapp|contact\s+via\s+whatsapp|message\s+agent|whatsapp\s+agent)\b/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'property-whatsapp-agent',
+          message: 'Opening WhatsApp to contact agent.',
+        };
+      }
+
+      // More about property (contact form)
+      if (/\b(more|more\s+about|more\s+info|information|details|contact)\b/.test(t) && !/\bback\b/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'property-contact-form',
+          message: 'Opening contact form for more information.',
+        };
+      }
+
+      // Send message (in contact form)
+      if (/\b(send|send\s+message|submit)\b/.test(t) && !/cancel/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'property-send-message',
+          message: 'Sending message.',
+        };
+      }
+
+      // Cancel
+      if (/\bcancel\b/.test(t)) {
+        return {
+          action: 'click',
+          voiceHook: 'property-cancel',
+          message: 'Canceling.',
         };
       }
     }
@@ -798,7 +968,7 @@ export class AiService {
       };
     }
 
-    const keywordHit = this.tryKeywordNavigation(tClean, normalizedRole);
+    const keywordHit = this.tryKeywordNavigation(tClean, normalizedRole, currentPath);
     if (keywordHit) {
       this.logger.log(
         `Keyword navigation: ${keywordHit.target || keywordHit.action}`,
