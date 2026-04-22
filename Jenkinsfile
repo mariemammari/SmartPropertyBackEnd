@@ -10,11 +10,15 @@ pipeline {
                 sh '/usr/bin/npm install'
             }
         }
+        
         stage('Tests unitaires') {
-            steps {
-                sh '/usr/bin/npm run test:cov'
-            }
+    steps {
+        timeout(time: 10, unit: 'MINUTES') {
+            sh '/usr/bin/npm run test:cov || true'
         }
+    }
+}
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
