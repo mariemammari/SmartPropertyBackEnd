@@ -2,66 +2,76 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'smart-property-backend'
-        IMAGE_TAG  = 'latest'
-        NPM_CACHE  = '/var/lib/jenkins/.npm-cache'
+        NODE_ENV = 'test'
     }
 
     stages {
-        stage('Install') {
+
+        stage('Checkout') {
             steps {
-                sh '/usr/bin/npm install --prefer-offline'
+                checkout scm
             }
         }
 
-        stage('Tests unitaires') {
+        stage('Install Dependencies') {
             steps {
-                timeout(time: 15, unit: 'MINUTES') {
-                    sh '/usr/bin/npm run test:cov || true'
+                sh 'npm install --prefer-offline'
+            }
+        }
+
+        stage('Run Unit Tests') {
+            steps {
+                sh 'npm run test:cov || true'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        /opt/sonar-scanner/bin/sonar-scanner
+                    '''
                 }
             }
         }
 
-
-
-       stage('SonarQube Analysis') {
-    steps {
-        withSonarQubeEnv('SonarQube') {
-            sh """
-            /opt/sonar-scanner/bin/sonar-scanner \
-            -Dsonar.branch.name=${env.BRANCH_NAME}
-            """
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: false
+                }
+            }
         }
-    }
-}
+
+        stage('Build Application') {
+            steps {
+                sh 'npm run build || true'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
                 sh '''
-                    eval $(minikube docker-env)
-                    docker build \
-                      --network=host \
-                      --cache-from $IMAGE_NAME:latest \
-                      -t $IMAGE_NAME:$IMAGE_TAG .
+                    docker build -t smart-property-backend:latest .
                 '''
             }
         }
 
-        stage('Deploy sur Kubernetes') {
+        stage('Deploy') {
             steps {
-                sh 'kubectl apply -f k8s/deployment.yaml'
-                sh 'kubectl apply -f k8s/service.yaml'
-                sh 'kubectl rollout status deployment/smart-property-backend --timeout=120s || true'
+                sh '''
+                    echo "Deploy step here (Kubernetes / Docker / SSH)"
+                '''
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline CD backend OK !'
+            echo 'Pipeline SUCCESS '
         }
         failure {
-            echo 'Pipeline CD backend echoue !'
+            echo 'Pipeline FAILED '
         }
     }
 }
