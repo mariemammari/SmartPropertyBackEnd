@@ -68,7 +68,8 @@ describe('AssignmentService - Least Loaded Algorithm', () => {
       const result = await service.findBestAgentForAssignment('branch1');
 
       expect(result.success).toBe(true);
-      expect(result.assignedAgentId.toString()).toBe(agent2._id.toString());
+      expect(result.assignedAgentId).toBeDefined();
+      expect(result.assignedAgentId!.toString()).toBe(agent2._id.toString());
     });
 
     it('should break tie by oldest lastAssignedAt', async () => {
@@ -92,7 +93,8 @@ describe('AssignmentService - Least Loaded Algorithm', () => {
       const result = await service.findBestAgentForAssignment('branch1');
 
       expect(result.success).toBe(true);
-      expect(result.assignedAgentId.toString()).toBe(agent1._id.toString());
+      expect(result.assignedAgentId).toBeDefined();
+      expect(result.assignedAgentId!.toString()).toBe(agent1._id.toString());
     });
 
     it('should use _id as final tie-breaker', async () => {
@@ -109,7 +111,8 @@ describe('AssignmentService - Least Loaded Algorithm', () => {
       const result = await service.findBestAgentForAssignment('branch1');
 
       expect(result.success).toBe(true);
-      expect(result.assignedAgentId.toString()).toBe(
+      expect(result.assignedAgentId).toBeDefined();
+      expect(result.assignedAgentId!.toString()).toBe(
         agent1._id.toString(), // First by _id
       );
     });
@@ -165,7 +168,8 @@ describe('AssignmentService - Least Loaded Algorithm', () => {
         expect.any(Object),
       );
 
-      expect(result.assignedAgentId.toString()).toBe(agentId.toString());
+      expect(result.assignedAgentId).toBeDefined();
+      expect(result.assignedAgentId!.toString()).toBe(agentId.toString());
     });
 
     it('should throw NotFoundException if listing not found', async () => {

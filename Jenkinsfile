@@ -4,6 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'smart-property-backend'
         IMAGE_TAG  = 'latest'
+        NPM_CACHE  = '/var/lib/jenkins/.npm-cache'
     }
 
     stages {
@@ -33,7 +34,10 @@ pipeline {
             steps {
                 sh '''
                     eval $(minikube docker-env)
-                    docker build --network=host -t $IMAGE_NAME:$IMAGE_TAG .
+                    docker build \
+                      --network=host \
+                      --cache-from $IMAGE_NAME:latest \
+                      -t $IMAGE_NAME:$IMAGE_TAG .
                 '''
             }
         }

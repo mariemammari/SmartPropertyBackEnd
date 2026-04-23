@@ -1,23 +1,15 @@
-# -----------------------
-# Étape 1 : Build + Tests
-# -----------------------
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci
+RUN npm ci --cache /tmp/npm-cache
 
 COPY . .
 
-#RUN npm run test
-
 RUN npm run build
 
-# -----------------------
-# Étape 2 : Image production
-# -----------------------
 FROM node:20-alpine
 
 WORKDIR /app
