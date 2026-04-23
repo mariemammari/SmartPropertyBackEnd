@@ -22,13 +22,18 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '/opt/sonar-scanner/bin/sonar-scanner || true'
-                }
-            }
+
+
+       stage('SonarQube Analysis') {
+    steps {
+        withSonarQubeEnv('SonarQube') {
+            sh """
+            /opt/sonar-scanner/bin/sonar-scanner \
+            -Dsonar.branch.name=${env.BRANCH_NAME}
+            """
         }
+    }
+}
 
         stage('Build Docker Image') {
             steps {
