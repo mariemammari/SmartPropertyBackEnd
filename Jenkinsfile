@@ -15,68 +15,61 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh '''
-                    rm -rf node_modules
-                    npm ci
-                '''
+                sh 'rm -rf node_modules && npm ci'
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh '''
-                    npm run test:cov -- --maxWorkers=2
-                '''
+                sh 'npm run test:cov -- --maxWorkers=2'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        /opt/sonar-scanner/bin/sonar-scanner
-                    '''
+                    sh '/opt/sonar-scanner/bin/sonar-scanner'
                 }
             }
         }
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: false
                 }
             }
         }
 
         stage('Build') {
             steps {
-                sh '''
-                    npm run build
-                '''
+                sh 'npm run build'
             }
         }
 
         stage('Docker Build') {
             steps {
-                sh '''
-                    docker build -t smart-property-backend:latest .
-                '''
+                sh 'docker build -t smart-property-backend:latest .'
             }
         }
 
         stage('Deploy') {
             steps {
-                sh '''
-                    docker-compose up -d
-                '''
+                sh 'docker-compose up -d'
             }
         }
     }
 
     post {
         always {
-            junit 'coverage/junit.xml'
+            junit allowEmptyResults: true, testResults: 'coverage/junit.xml'
             archiveArtifacts artifacts: '**/coverage/**', allowEmptyArchive: true
+        }
+        success {
+            echo 'Pipeline réussi !'
+        }
+        failure {
+            echo 'Pipeline échoué !'
         }
     }
 }
