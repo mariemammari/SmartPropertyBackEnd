@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        NODE_ENV = 'test'
+        NODE_OPTIONS = "--max_old_space_size=4096"
     }
 
     stages {
@@ -15,13 +15,18 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install --prefer-offline'
+                sh '''
+                    rm -rf node_modules
+                    npm ci
+                '''
             }
         }
 
-        stage('Run Unit Tests') {
+        stage('Run Tests') {
             steps {
-                sh 'npm run test:cov || true'
+                sh '''
+                    npm run test:cov -- --maxWorkers=2
+                '''
             }
         }
 
@@ -37,19 +42,21 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: false
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
 
-        stage('Build Application') {
+        stage('Build') {
             steps {
-                sh 'npm run build || true'
+                sh '''
+                    npm run build
+                '''
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Docker Build') {
             steps {
                 sh '''
                     docker build -t smart-property-backend:latest .
@@ -60,18 +67,16 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    echo "Deploy step here (Kubernetes / Docker / SSH)"
+                    docker-compose up -d
                 '''
             }
         }
     }
 
     post {
-        success {
-            echo 'Pipeline SUCCESS '
-        }
-        failure {
-            echo 'Pipeline FAILED '
+        always {
+            junit 'coverage/junit.xml'
+            archiveArtifacts artifacts: '**/coverage/**', allowEmptyArchive: true
         }
     }
 }
