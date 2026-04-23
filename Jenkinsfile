@@ -62,11 +62,19 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
-            steps {
-                sh 'docker-compose up -d'
-            }
-        }
+       stage('Deploy') {
+    steps {
+        sh '''
+            docker stop smart-property-backend || true
+            docker rm smart-property-backend || true
+            docker run -d \
+                --name smart-property-backend \
+                -p 3000:3000 \
+                -e NODE_ENV=production \
+                smart-property-backend:latest
+        '''
+    }
+}
     }
 
     post {
