@@ -26,6 +26,7 @@ import { PropertyEngagementModule } from './property-engagement/property-engagem
 import { MailModule } from './mail/mail.module';
 import { PropertySubmissionModule } from './property-submission/property-submission.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { SolvencyModule } from './solvency/solvency.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     RentalModule,
     RentalChatModule,
     PropertySubmissionModule,
+    SolvencyModule,
   ],
   controllers: [AppController],
   providers: [AppService, LazyModuleLoader],

@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -14,12 +15,16 @@ import {
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { v2 as cloudinary } from 'cloudinary';
+import { SolvencyService } from '../solvency/solvency.service';
 
 @Injectable()
 export class ApplicationService {
+  private readonly logger = new Logger(ApplicationService.name);
+
   constructor(
     @InjectModel(Application.name)
     private applicationModel: Model<ApplicationDocument>,
+    private readonly solvencyService: SolvencyService,
   ) {}
 
   async create(createDto: CreateApplicationDto): Promise<Application> {
@@ -37,7 +42,20 @@ export class ApplicationService {
     }
 
     const created = new this.applicationModel(createDto);
-    return created.save();
+    const saved = await created.save();
+
+    // Kick off solvency analysis in the background right after submission.
+    if (saved.documentUrl) {
+      void this.solvencyService
+        .analyzeAndPersist(String((saved as any)._id))
+        .catch((error) => {
+          this.logger.error(
+            `Background solvency analysis failed for application ${String((saved as any)._id)}: ${error?.message || error}`,
+          );
+        });
+    }
+
+    return saved;
   }
 
   async uploadDocument(file: Express.Multer.File): Promise<string> {

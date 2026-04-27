@@ -15,6 +15,19 @@ export enum RejectionType {
   BLOCKED = 'BLOCKED',
 }
 
+export enum SolvencyAnalysisStatus {
+  NOT_STARTED = 'NOT_STARTED',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}
+
+export enum SolvencyRecommendation {
+  APPROVE = 'APPROVE',
+  REVIEW = 'REVIEW',
+  REJECT = 'REJECT',
+}
+
 @Schema({ timestamps: true })
 export class Application {
   @Prop({ type: Types.ObjectId, ref: 'Property', required: true })
@@ -97,6 +110,69 @@ export class Application {
 
   @Prop({ required: false })
   rejectionReason?: string;
+
+  @Prop({
+    type: String,
+    enum: Object.values(SolvencyAnalysisStatus),
+    default: SolvencyAnalysisStatus.NOT_STARTED,
+  })
+  solvencyStatus?: string;
+
+  @Prop({ required: false })
+  solvencyLastRunAt?: Date;
+
+  @Prop({ required: false })
+  solvencyError?: string;
+
+  @Prop({
+    type: {
+      provider: { type: String },
+      ocrConfidence: { type: Number },
+      extractedFullName: { type: String },
+      extractedMonthlyIncome: { type: Number },
+      declaredMonthlyIncome: { type: Number },
+      incomeMismatchPercent: { type: Number },
+      nameMatchScore: { type: Number },
+      monthlyPropertyCost: { type: Number },
+      affordabilityRatio: { type: Number },
+      occupationAssessment: {
+        type: {
+          status: {
+            type: String,
+            enum: ['VALID', 'SUSPICIOUS', 'MISSING'],
+          },
+          score: { type: Number },
+          reason: { type: String },
+          normalizedOccupation: { type: String },
+        },
+        default: null,
+      },
+      riskScore: { type: Number },
+      recommendation: {
+        type: String,
+        enum: Object.values(SolvencyRecommendation),
+      },
+      fraudFlags: { type: [String], default: [] },
+      checks: {
+        type: [
+          {
+            name: { type: String, required: true },
+            passed: { type: Boolean, required: true },
+            expected: { type: String },
+            actual: { type: String },
+            note: { type: String },
+          },
+        ],
+        default: [],
+      },
+      summary: { type: String },
+      documentTextExcerpt: { type: String },
+      analyzedAt: { type: Date },
+      modelVersion: { type: String },
+    },
+    default: null,
+  })
+  solvencyAnalysis?: any;
 
   @Prop({ type: [String], default: [] })
   improveChecklist?: string[];
