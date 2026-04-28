@@ -5,4 +5,4 @@ scrape_configs:
   - job_name: 'nestjs-backend'
     metrics_path: /metrics
     static_configs:
-      - targets: ['172.19.192.1:3000']
+      - targets: ['192.168.240.130:30080']

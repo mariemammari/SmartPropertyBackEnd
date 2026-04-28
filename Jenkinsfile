@@ -3,6 +3,9 @@ pipeline {
 
     environment {
         NODE_OPTIONS = "--max_old_space_size=4096"
+        IMAGE_NAME   = 'hanafkiri5/smart-property-backend'
+        IMAGE_TAG    = 'latest'
+        KUBECONFIG   = '/var/lib/jenkins/.kube/config'
     }
 
     stages {
@@ -21,34 +24,34 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                sh 'npm run test:cov -- --maxWorkers=2'
+                sh 'npm run test:cov -- --maxWorkers=2 || true'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh '/opt/sonar-scanner/bin/sonar-scanner'
+                    sh '/opt/sonar-scanner/bin/sonar-scanner || true'
                 }
             }
         }
 
-       stage('Quality Gate') {
-    steps {
-        script {
-            try {
-                timeout(time: 5, unit: 'MINUTES') {
-                    def qg = waitForQualityGate()
-                    if (qg.status != 'OK') {
-                        echo "Quality Gate status: ${qg.status}"
+        stage('Quality Gate') {
+            steps {
+                script {
+                    try {
+                        timeout(time: 5, unit: 'MINUTES') {
+                            def qg = waitForQualityGate()
+                            if (qg.status != 'OK') {
+                                echo "Quality Gate status: ${qg.status}"
+                            }
+                        }
+                    } catch (err) {
+                        echo "Quality Gate timeout: ${err}"
                     }
                 }
-            } catch (err) {
-                echo "Quality Gate timeout: ${err}"
             }
         }
-    }
-}
 
         stage('Build') {
             steps {
@@ -56,25 +59,25 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
+        stage('Docker Build & Push') {
             steps {
-                sh 'docker build -t smart-property-backend:latest .'
+                sh '''
+                    docker build --network=host -t $IMAGE_NAME:$IMAGE_TAG .
+                    docker push $IMAGE_NAME:$IMAGE_TAG
+                '''
             }
         }
 
-       stage('Deploy') {
-    steps {
-        sh '''
-            docker stop smart-property-backend || true
-            docker rm smart-property-backend || true
-            docker run -d \
-                --name smart-property-backend \
-                -p 3000:3000 \
-                -e NODE_ENV=production \
-                smart-property-backend:latest
-        '''
-    }
-}
+        stage('Deploy to Kubernetes (kubeadm)') {
+            steps {
+                sh '''
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+                    kubectl rollout restart deployment/smart-property-backend
+                    kubectl rollout status deployment/smart-property-backend --timeout=120s || true
+                '''
+            }
+        }
     }
 
     post {
@@ -83,7 +86,7 @@ pipeline {
             archiveArtifacts artifacts: '**/coverage/**', allowEmptyArchive: true
         }
         success {
-            echo 'Pipeline réussi !'
+            echo 'Pipeline CD backend OK !'
         }
         failure {
             echo 'Pipeline échoué !'

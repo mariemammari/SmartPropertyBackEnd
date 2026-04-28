@@ -25,6 +25,7 @@ export class RecommenderService {
         budgetMax_tnd: userProfile.budgetMax,
         preferredPropertyType: userProfile.preferredPropertyType,
         preferredCity: userProfile.preferredCity,
+        preferredPurpose: userProfile.preferredPurpose || 'rent',
         monthlyIncome_tnd: userProfile.monthlyIncome,
       };
 
