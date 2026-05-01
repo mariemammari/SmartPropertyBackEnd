@@ -64,4 +64,14 @@ export class AiController {
       throw new BadRequestException(error.message);
     }
   }
+
+  @Post('estimate-price')
+  async estimatePrice(@Body() body: any) {
+    try {
+      const result = await this.aiService.estimatePropertyPrice(body);
+      return result;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
 }
