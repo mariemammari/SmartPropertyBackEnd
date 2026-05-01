@@ -21,6 +21,7 @@ import {
   UpdatePropertyDto,
   PropertyFilterDto,
 } from '../property/dto/create-property.dto';
+import { PropertyMediaService } from '../Property-Media/property-media.service';
 
 @Injectable()
 export class PropertyService {
@@ -30,7 +31,8 @@ export class PropertyService {
     private listingModel: Model<PropertyListingDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly rentalService: RentalService,
-  ) {}
+    private readonly propertyMediaService: PropertyMediaService,
+  ) { }
 
   // ── Create ────────────────────────────────────────────────────────────────
   async create(dto: CreatePropertyDto): Promise<Property> {
@@ -175,6 +177,21 @@ export class PropertyService {
       .find({ createdBy: new Types.ObjectId(agentId) })
       .sort({ createdAt: -1 })
       .exec();
+  }
+
+  // ── Find by Branch (all properties belonging to a branch) ───────────────
+  async findByBranch(branchId: string): Promise<Property[]> {
+    console.log(`🔍 [findByBranch] Searching for properties with branchId: ${branchId}`);
+
+    const result = await this.propertyModel
+      .find({ branchId: branchId })
+      .populate('ownerId', 'name email phone')
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    console.log(`✅ [findByBranch] Found ${result.length} properties for branch ${branchId}`);
+    return result;
   }
 
   // ── Find Rented by Owner ─────────────────────────────────────────────────
@@ -354,6 +371,10 @@ export class PropertyService {
       '🔍 Looking for listings with propertyId (string or ObjectId):',
       id,
     );
+
+    // ⭐ DELETE ALL MEDIA ASSOCIATED WITH THIS PROPERTY FROM DB AND CLOUDINARY
+    await this.propertyMediaService.removeAllByProperty(id);
+    console.log('🖼️ Property media deleted from Cloudinary & DB for:', id);
 
     // ⭐ DELETE ALL LISTINGS ASSOCIATED WITH THIS PROPERTY
     // Query for BOTH string and ObjectId formats in case data is stored as string

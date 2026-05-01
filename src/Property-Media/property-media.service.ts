@@ -156,4 +156,25 @@ export class PropertyMediaService {
         await this.mediaModel.findByIdAndUpdate(next._id, { isPrimary: true });
     }
   }
+
+  // ── Hard delete all for a property ─────────────────────────────────────────
+  async removeAllByProperty(propertyId: string): Promise<void> {
+    const medias = await this.mediaModel.find({
+      propertyId: new Types.ObjectId(propertyId),
+    }).exec();
+
+    for (const media of medias) {
+      if (media.publicId) {
+        try {
+          await cloudinary.uploader.destroy(media.publicId);
+        } catch (error) {
+          console.error(`Failed to delete cloudinary media ${media.publicId}:`, error);
+        }
+      }
+    }
+
+    await this.mediaModel.deleteMany({
+      propertyId: new Types.ObjectId(propertyId),
+    }).exec();
+  }
 }

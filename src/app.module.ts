@@ -1,8 +1,11 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { LazyModuleLoader } from '@nestjs/core';
+import { LazyModuleLoader, APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { SmartPropertyThrottlerGuard } from './common/guards/smart-throttler.guard';
+import { FingerprintMiddleware } from './middleware/fingerprint.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -29,6 +32,10 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([{
+      ttl: 60000,   // 60 seconds (v6 uses milliseconds)
+      limit: 120,   // max 120 requests per 60s window
+    }]),
     PrometheusModule.register(),
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
@@ -81,6 +88,17 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     PropertySubmissionModule,
   ],
   controllers: [AppController],
-  providers: [AppService, LazyModuleLoader],
+  providers: [
+    AppService,
+    LazyModuleLoader,
+    {
+      provide: APP_GUARD,
+      useClass: SmartPropertyThrottlerGuard, // Skips monitoring/webhook routes
+    },
+  ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(FingerprintMiddleware).forRoutes('*');
+  }
+}

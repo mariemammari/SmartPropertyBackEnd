@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { AntiScrapingInterceptor } from './interceptors/anti-scraping.interceptor';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
@@ -7,6 +8,7 @@ import * as dns from 'dns';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
 import { v2 as cloudinary } from 'cloudinary';
+import helmet from 'helmet';
 
 // Load environment variables once
 dotenv.config();
@@ -23,6 +25,8 @@ dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(helmet());
+  app.useGlobalInterceptors(new AntiScrapingInterceptor());
 
   // Stripe webhook requires raw body for signature verification.
   app.use('/rentals/webhook/stripe', express.raw({ type: 'application/json' }));

@@ -94,6 +94,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { PropertyService } from './property.service';
 import {
   CreatePropertyDto,
@@ -101,18 +102,24 @@ import {
   PropertyFilterDto,
 } from './dto/create-property.dto';
 import { UserRole } from '../user/schemas/user.schema';
+import { NearbyService, NearbyResponse } from '../nearby/nearby.service';
+import { NearbyQueryDto } from '../nearby/nearby.dto';
 
-@UseGuards(JwtAuthGuard)
 @Controller('properties')
 export class PropertyController {
-  constructor(private readonly propertiesService: PropertyService) {}
+  constructor(
+    private readonly propertiesService: PropertyService,
+    private readonly nearbyService: NearbyService,
+  ) { }
 
   // ── Create ────────────────────────────────────────────────────────────────
   @Post()
+  @UseGuards(JwtAuthGuard)
   create(@Body() dto: CreatePropertyDto, @Request() req) {
     console.log('req.user:', req.user); // log
 
-    const { userId, role } = req.user;
+    const userId = req.user?.userId;
+    const role = req.user?.role;
 
     if (role === UserRole.REAL_ESTATE_AGENT) {
       // Agent creates on behalf of owner → ownerId comes from body, createdBy = agent
@@ -128,27 +135,48 @@ export class PropertyController {
 
   // ── Get All
   @Get()
-  findAll(@Query() filters: PropertyFilterDto, @Request() req) {
-    const { userId, role } = req.user;
+  @UseGuards(OptionalJwtAuthGuard)
+  async findAll(@Query() filters: PropertyFilterDto, @Request() req) {
+    const userId = req.user?.userId;
+    const role = req.user?.role;
 
     // Agent voit uniquement ses propriétés
     if (role === UserRole.REAL_ESTATE_AGENT) {
       filters.createdBy = userId;
     }
 
-    return this.propertiesService.findAll(filters);
+    const result = await this.propertiesService.findAll(filters);
+    const properties = result?.data || [];
+
+    if (!req.user) {
+      const masked = (properties || []).map((p: any) => {
+        const obj = p?.toObject ? p.toObject() : p;
+        return {
+          id: obj.id || obj._id,
+          title: obj.title,
+          city: obj.city,
+          price: obj.price,
+        };
+      });
+      return { ...result, data: masked };
+    }
+
+    return result;
   }
 
   // ── Stats ─────────────────────────────────────────────────────────────────
   @Get('stats')
+  @UseGuards(OptionalJwtAuthGuard)
   getStats() {
     return this.propertiesService.getStats();
   }
 
   // ── My Properties (owner or agent) ────────────────────────────────────────
   @Get('mine')
+  @UseGuards(JwtAuthGuard)
   findMine(@Request() req) {
-    const { userId, role } = req.user;
+    const userId = req.user?.userId;
+    const role = req.user?.role;
     if (role === UserRole.REAL_ESTATE_AGENT) {
       return this.propertiesService.findByAgent(userId);
     }
@@ -185,20 +213,45 @@ export class PropertyController {
     return this.propertiesService.findByAgent(agentId);
   }
 
+  // ── By Branch ─────────────────────────────────────────────────────────────
+  @Get('branch/:branchId')
+  findByBranch(@Param('branchId') branchId: string) {
+    console.log('branchId received:', branchId);
+    return this.propertiesService.findByBranch(branchId);
+  }
+
+  // ── Nearby POIs ──────────────────────────────────────────────────────────
+  @Get('nearby')
+  async getNearby(@Query() query: NearbyQueryDto): Promise<NearbyResponse> {
+    return this.nearbyService.getNearby(query.lat, query.lng, query.radius);
+  }
+
   // ── Get One ───────────────────────────────────────────────────────────────
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.propertiesService.findOne(id);
+  @UseGuards(OptionalJwtAuthGuard)
+  async findOne(@Param('id') id: string, @Request() req) {
+    const property = await this.propertiesService.findOne(id);
+    if (!req.user) {
+      return {
+        id: (property as any).id || (property as any)._id,
+        title: (property as any).title,
+        city: (property as any).city,
+        price: (property as any).price,
+      };
+    }
+    return property;
   }
 
   // ── Update ────────────────────────────────────────────────────────────────
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() dto: UpdatePropertyDto) {
     return this.propertiesService.update(id, dto);
   }
 
   // ── Delete ────────────────────────────────────────────────────────────────
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     console.log('🔴 DELETE ENDPOINT CALLED for property:', id);

@@ -3,7 +3,7 @@ import { NearbyService } from './nearby.service';
 import { NearbyController } from './nearby.controller';
 
 @Module({
-  controllers: [NearbyController],
   providers: [NearbyService],
+  exports: [NearbyService],
 })
 export class NearbyModule {}

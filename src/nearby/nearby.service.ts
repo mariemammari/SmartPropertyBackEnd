@@ -27,6 +27,8 @@ export interface NearbyResponse {
 
 @Injectable()
 export class NearbyService {
+  private cache = new Map<string, { data: POI[]; timestamp: number }>();
+  private readonly CACHE_TTL = 30 * 60 * 1000; // 30 minutes cache
   // ─── Haversine Formula: Calculate distance between two coordinates ─────
   private calculateDistance(
     lat1: number,
@@ -251,7 +253,14 @@ export class NearbyService {
     lng: number,
     radius: number,
   ): Promise<POI[]> {
-    // Build Overpass QL query to fetch multiple POI types
+    // 1. Check Cache first (round to 4 decimal places ~11m precision)
+    const cacheKey = `${lat.toFixed(4)},${lng.toFixed(4)},${radius}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      // console.log('📁 Returning cached nearby data for:', cacheKey);
+      return cached.data;
+    }
+
     const overpassQuery = `
       [out:json];
       (
@@ -269,39 +278,76 @@ export class NearbyService {
     `;
     const body = `data=${encodeURIComponent(overpassQuery)}`;
 
-    try {
-      const response = await fetch('https://overpass-api.de/api/interpreter', {
-        method: 'POST',
-        body,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      });
+    const mirrors = [
+      'https://overpass-api.de/api/interpreter',
+      'https://lz4.overpass.kumi.systems/api/interpreter',
+      'https://overpass.kumi.systems/api/interpreter',
+      'https://overpass.osm.ch/api/interpreter',
+    ];
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `Overpass API error: ${response.status} ${response.statusText} - ${errorText}`,
-        );
+    let lastError: Error | null = null;
+
+    for (const url of mirrors) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          body,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json, */*',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SmartProperty/1.0 (contact: support@smartproperty.tn)',
+            'Referer': 'https://smartproperty.tn/',
+          },
+          signal: AbortSignal.timeout(30000), // 30s timeout per mirror
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
+        }
+
+        const data = await response.json();
+
+        if (!data || !data.elements) {
+          console.error(`❌ Overpass mirror (${url}) returned invalid JSON:`, data);
+          throw new Error('Invalid JSON response from Overpass');
+        }
+
+        const pois = data.elements
+          .filter((element: any) => element.tags && element.tags.name)
+          .map((element: any) => ({
+            name: element.tags.name,
+            lat: element.lat || (element.center ? element.center.lat : null),
+            lng: element.lon || (element.center ? element.center.lon : null),
+            tags: element.tags,
+          }))
+          .filter((poi: any) => poi.lat !== null && poi.lng !== null);
+
+        // 2. Save to Cache
+        this.cache.set(cacheKey, { data: pois, timestamp: Date.now() });
+        return pois;
+      } catch (error: any) {
+        console.warn(`⚠️ Overpass mirror failed (${url}):`, error.message);
+        lastError = error;
+        // Small delay before trying next mirror
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
-
-      const data = await response.json();
-
-      // Map Overpass response to POI format
-      const pois: POI[] = data.elements
-        .filter((element: any) => element.tags && element.tags.name) // Only named POIs
-        .map((element: any) => ({
-          name: element.tags.name,
-          lat: element.lat || element.center.lat,
-          lng: element.lon || element.center.lon,
-          tags: element.tags,
-        }));
-
-      return pois;
-    } catch (error) {
-      console.error('Overpass API error:', error);
-      throw new BadRequestException(
-        'Failed to fetch nearby locations from Overpass API',
-      );
     }
+
+    console.error(
+      '🛑 All Overpass mirrors failed. Returning empty POI set.',
+      lastError?.message,
+    );
+
+    // Clean up old cache entries occasionally
+    if (this.cache.size > 100) {
+      const now = Date.now();
+      for (const [key, val] of this.cache.entries()) {
+        if (now - val.timestamp > this.CACHE_TTL) this.cache.delete(key);
+      }
+    }
+
+    return [];
   }
 
   // ─── Main method: Get nearby POIs ──────────────────────────────────────

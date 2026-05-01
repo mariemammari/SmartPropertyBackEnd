@@ -2,7 +2,7 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { NearbyService, NearbyResponse } from './nearby.service';
 import { NearbyQueryDto } from './nearby.dto';
 
-@Controller('nearby')
+@Controller('properties/nearby')
 export class NearbyController {
   constructor(private readonly nearbyService: NearbyService) {}
 

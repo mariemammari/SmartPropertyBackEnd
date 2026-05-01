@@ -10,6 +10,8 @@ import {
 import { User, UserSchema } from '../user/schemas/user.schema';
 import { NotificationModule } from '../notification/notification.module';
 import { RentalModule } from '../rental/rental.module';
+import { PropertyMediaModule } from '../Property-Media/property-media.module';
+import { NearbyModule } from '../nearby/nearby.module';
 
 @Module({
   providers: [PropertyService],
@@ -21,6 +23,8 @@ import { RentalModule } from '../rental/rental.module';
       { name: User.name, schema: UserSchema },
     ]),
     RentalModule,
+    PropertyMediaModule,
+    NearbyModule,
     forwardRef(() => NotificationModule),
   ],
   exports: [PropertyService],
