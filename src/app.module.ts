@@ -29,6 +29,7 @@ import { PropertyEngagementModule } from './property-engagement/property-engagem
 import { MailModule } from './mail/mail.module';
 import { PropertySubmissionModule } from './property-submission/property-submission.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { RecommandationModule } from './Recommandation/RecommandationModule';
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     RentalModule,
     RentalChatModule,
     PropertySubmissionModule,
+    RecommandationModule
   ],
   controllers: [AppController],
   providers: [

@@ -41,17 +41,18 @@ describe('PropertySubmissionService - Client Submission Flow', () => {
   });
 
   beforeEach(async () => {
-    mockPropertyModel = {
-      create: jest.fn(),
-      findByIdAndUpdate: jest.fn(),
-    };
+    mockPropertyModel = jest.fn();
+    mockPropertyModel.findByIdAndUpdate = jest.fn();
 
-    mockListingModel = {
-      findByIdAndUpdate: jest.fn(),
-      findById: jest.fn(),
-      countDocuments: jest.fn(),
-      find: jest.fn(),
-    };
+    mockListingModel = jest.fn();
+    mockListingModel.findByIdAndUpdate = jest.fn();
+    mockListingModel.findById = jest.fn();
+    mockListingModel.countDocuments = jest.fn();
+    mockListingModel.find = jest.fn();
+    mockListingModel.populate = jest.fn();
+    mockListingModel.sort = jest.fn();
+    mockListingModel.skip = jest.fn();
+    mockListingModel.limit = jest.fn();
 
     mockUserModel = {
       find: jest.fn(),
@@ -113,7 +114,7 @@ describe('PropertySubmissionService - Client Submission Flow', () => {
         }),
       };
 
-      mockPropertyModel.create = jest.fn().mockReturnValue(mockProperty);
+      mockPropertyModel.mockImplementation(() => mockProperty);
 
       const mockListing = {
         _id: new Types.ObjectId(),
@@ -121,11 +122,13 @@ describe('PropertySubmissionService - Client Submission Flow', () => {
         submittedByClient: true,
         assignmentStatus: 'assigned',
         assignedAgentId: new Types.ObjectId(agentId),
+        save: jest.fn(),
       };
 
-      mockListingModel.findByIdAndUpdate = jest
-        .fn()
-        .mockResolvedValue(mockListing);
+      mockListing.save.mockResolvedValue(mockListing);
+
+      mockListingModel.mockImplementation(() => mockListing);
+      mockListingModel.findById.mockResolvedValue(mockListing);
 
       jest
         .spyOn(assignmentService, 'findBestAgentForAssignment')
@@ -136,32 +139,39 @@ describe('PropertySubmissionService - Client Submission Flow', () => {
 
       jest
         .spyOn(assignmentService, 'assignListingToAgent')
-        .mockResolvedValue(mockListing);
+        .mockResolvedValue(mockListing as any);
 
       const result = await service.submitProperty(clientId, dto);
 
-      expect(result.listing.submittedByClient).toBe(true);
-      expect(result.listing.status).toBe(ListingStatus.PENDING_REVIEW);
+      expect(result.listing).toBeDefined();
+      expect(result.listing!.submittedByClient).toBe(true);
+      expect(result.listing!.status).toBe(ListingStatus.PENDING_REVIEW);
     });
 
     it('should auto-assign to available agent', async () => {
       const dto = createMockSubmissionDto();
 
+      const propertyId = new Types.ObjectId();
       const mockProperty = {
-        _id: new Types.ObjectId(),
-        save: jest.fn().mockResolvedValue({}),
+        _id: propertyId,
+        save: jest.fn().mockResolvedValue({ _id: propertyId }),
       };
 
-      mockPropertyModel.create = jest.fn().mockReturnValue(mockProperty);
+      mockPropertyModel.mockImplementation(() => mockProperty);
 
+      const listingId = new Types.ObjectId();
       const mockListing = {
-        _id: new Types.ObjectId(),
+        _id: listingId,
         assignedAgentId: new Types.ObjectId(agentId),
         assignmentStatus: 'assigned',
-        save: jest.fn().mockResolvedValue({}),
+        save: jest.fn().mockResolvedValue({
+          _id: listingId,
+          assignedAgentId: new Types.ObjectId(agentId),
+          assignmentStatus: 'assigned',
+        }),
       };
 
-      mockListingModel.create = jest.fn().mockReturnValue(mockListing);
+      mockListingModel.mockImplementation(() => mockListing);
 
       jest
         .spyOn(assignmentService, 'findBestAgentForAssignment')
@@ -172,9 +182,9 @@ describe('PropertySubmissionService - Client Submission Flow', () => {
 
       jest
         .spyOn(assignmentService, 'assignListingToAgent')
-        .mockResolvedValue(mockListing);
+        .mockResolvedValue(mockListing as any);
 
-      mockListingModel.findByIdAndUpdate.mockResolvedValue(mockListing);
+      mockListingModel.findById.mockResolvedValue(mockListing);
 
       const result = await service.submitProperty(clientId, dto);
 
@@ -188,20 +198,25 @@ describe('PropertySubmissionService - Client Submission Flow', () => {
     it('should leave unassigned if no agents available', async () => {
       const dto = createMockSubmissionDto();
 
+      const propertyId = new Types.ObjectId();
       const mockProperty = {
-        _id: new Types.ObjectId(),
-        save: jest.fn().mockResolvedValue({}),
+        _id: propertyId,
+        save: jest.fn().mockResolvedValue({ _id: propertyId }),
       };
 
-      mockPropertyModel.create = jest.fn().mockReturnValue(mockProperty);
+      mockPropertyModel.mockImplementation(() => mockProperty);
 
+      const listingId = new Types.ObjectId();
       const mockListing = {
-        _id: new Types.ObjectId(),
+        _id: listingId,
         assignmentStatus: 'unassigned',
-        save: jest.fn().mockResolvedValue({}),
+        save: jest.fn().mockResolvedValue({
+          _id: listingId,
+          assignmentStatus: 'unassigned',
+        }),
       };
 
-      mockListingModel.create = jest.fn().mockReturnValue(mockListing);
+      mockListingModel.mockImplementation(() => mockListing);
 
       jest
         .spyOn(assignmentService, 'findBestAgentForAssignment')
@@ -211,12 +226,11 @@ describe('PropertySubmissionService - Client Submission Flow', () => {
           message: 'Request will remain unassigned',
         });
 
-      mockListingModel.findByIdAndUpdate.mockResolvedValue(mockListing);
-
       const result = await service.submitProperty(clientId, dto);
 
       expect(result.assignmentWarning).toContain('No eligible agents');
-      expect(result.listing.assignmentStatus).toBe('unassigned');
+      expect(result.listing).toBeDefined();
+      expect(result.listing!.assignmentStatus).toBe('unassigned');
     });
   });
 

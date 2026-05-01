@@ -4,6 +4,9 @@ import { NotFoundException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { PropertyService } from './property.service';
 import { Property } from './schemas/property.schema';
+import { PropertyListing } from '../property-listing/schemas/property-listing.schema';
+import { User } from '../user/schemas/user.schema';
+import { RentalService } from '../rental/rental.service';
 
 describe('PropertyService', () => {
   let service: PropertyService;
@@ -29,6 +32,15 @@ describe('PropertyService', () => {
     },
   );
 
+  const listingModelMock = {
+    deleteMany: jest.fn(),
+  };
+  const userModelMock = {};
+  const rentalServiceMock = {
+    createFromPropertyStatusChange: jest.fn(),
+    terminateActiveRentalsForProperty: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -38,6 +50,18 @@ describe('PropertyService', () => {
         {
           provide: getModelToken(Property.name),
           useValue: propertyModelMock,
+        },
+        {
+          provide: getModelToken(PropertyListing.name),
+          useValue: listingModelMock,
+        },
+        {
+          provide: getModelToken(User.name),
+          useValue: userModelMock,
+        },
+        {
+          provide: RentalService,
+          useValue: rentalServiceMock,
         },
       ],
     }).compile();
@@ -137,6 +161,9 @@ describe('PropertyService', () => {
   });
 
   it('update: should unset location when only one coordinate is provided', async () => {
+    propertyModelMock.findById.mockReturnValueOnce({
+      exec: jest.fn().mockResolvedValueOnce({ _id: 'p1' }),
+    });
     const updated = { _id: 'p1' };
     const chain = { exec: jest.fn().mockResolvedValueOnce(updated) };
     propertyModelMock.findByIdAndUpdate.mockReturnValueOnce(chain);
@@ -154,11 +181,14 @@ describe('PropertyService', () => {
   });
 
   it('remove: should throw when property does not exist', async () => {
+    listingModelMock.deleteMany.mockResolvedValueOnce({ deletedCount: 0 });
     propertyModelMock.findByIdAndDelete.mockReturnValueOnce({
       exec: jest.fn().mockResolvedValueOnce(null),
     });
 
-    await expect(service.remove('missing-id')).rejects.toThrow(
+    await expect(
+      service.remove(new Types.ObjectId().toString()),
+    ).rejects.toThrow(
       NotFoundException,
     );
   });
