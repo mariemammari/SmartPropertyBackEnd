@@ -11,7 +11,7 @@ import { SolvencyService } from './solvency.service';
 
 @Controller('solvency')
 export class SolvencyController {
-  constructor(private readonly solvencyService: SolvencyService) {}
+  constructor(private readonly solvencyService: SolvencyService) { }
 
   @Post('application/:applicationId/analyze')
   async analyzeApplication(

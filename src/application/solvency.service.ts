@@ -139,7 +139,7 @@ export class SolvencyService {
       const incomeMismatchPercent =
         declaredMonthlyIncome > 0 && ocr.extractedMonthlyIncome
           ? Math.abs(ocr.extractedMonthlyIncome - declaredMonthlyIncome) /
-            declaredMonthlyIncome
+          declaredMonthlyIncome
           : null;
 
       const occupationAssessment = await this.evaluateOccupationQuality(
@@ -660,7 +660,7 @@ export class SolvencyService {
     const incomeMismatch =
       input.declaredMonthlyIncome > 0 && input.extractedMonthlyIncome
         ? Math.abs(input.extractedMonthlyIncome - input.declaredMonthlyIncome) /
-          input.declaredMonthlyIncome
+        input.declaredMonthlyIncome
         : null;
 
     checks.push({
