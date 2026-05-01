@@ -29,7 +29,7 @@ export class RecommenderService {
         monthlyIncome_tnd: userProfile.monthlyIncome,
       };
 
-      const response = await lastValueFrom(
+      const response: any = await lastValueFrom(
         this.httpService.post(`${aiApiUrl}/recommend`, payload)
       );
 
