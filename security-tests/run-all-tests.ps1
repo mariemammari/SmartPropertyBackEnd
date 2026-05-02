@@ -12,7 +12,7 @@
 #                                                                             #
 #        INCOMING REQUEST                                                     #
 #              |                                                              #
-#   Layer 1: RATE LIMITING      - The "Bouncer" (30 req/60s per IP)          #
+#   Layer 1: RATE LIMITING      - The "Bouncer" (300 req/60s per IP)         #
 #              |                                                              #
 #   Layer 2: FINGERPRINTING     - The "ID Checker" (IP, UA, Referer)         #
 #              |                                                              #
@@ -29,8 +29,8 @@
 #   Each request receives a "suspicion score" from 0 to 100:                 #
 #                                                                             #
 #     +80 points: Known bot User-Agent (python-requests, scrapy, etc.)       #
-#     +40 points: More than 60 requests in 60 seconds                        #
-#     +20 points: More than 30 requests in 60 seconds                        #
+#     +40 points: More than 100 requests in 60 seconds                       #
+#     +20 points: More than 60 requests in 60 seconds                        #
 #     +10 points: Missing Referer header                                     #
 #                                                                             #
 #   Response tiers based on score:                                            #

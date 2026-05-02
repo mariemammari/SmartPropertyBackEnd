@@ -3,6 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import Groq from 'groq-sdk';
 import { PropertyService } from '../property/property.service';
 import { BranchService } from '../branch/branch.service';
+import { spawn } from 'child_process';
+import { join } from 'path';
+import axios from 'axios';
 
 // Import Fuse - use require to handle both CommonJS and ESM
 const Fuse = require('fuse.js');
@@ -1156,6 +1159,26 @@ RULES:
         `Error interpreting navigation command: ${error?.message || error}`,
       );
       throw error;
+    }
+  }
+
+  async estimatePropertyPrice(data: any): Promise<{ estimated_price: number }> {
+    try {
+      const aiServiceUrl =
+        this.configService.get<string>('AI_SERVICE_URL') ||
+        'http://localhost:8000';
+      this.logger.log(`Calling AI service at: ${aiServiceUrl}/estimate`);
+
+      const response = await axios.post(`${aiServiceUrl}/estimate`, data);
+      return response.data;
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to estimate price via AI Service: ${error?.response?.data?.detail || error?.message}`,
+      );
+      throw new Error(
+        'Failed to estimate price: ' +
+          (error?.response?.data?.detail || error?.message),
+      );
     }
   }
 }

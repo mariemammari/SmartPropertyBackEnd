@@ -88,7 +88,8 @@ Write-Host "         Score tiers: 0-29=Allow, 30-59=Delay, 60-79=Honeypot, 80+=B
 # WHY THIS MATTERS:
 #   Even if a bot spoofs a perfect browser fingerprint, it still needs to
 #   send many requests to scrape data. The rate limiter caps each IP at
-#   30 requests per 60 seconds. After that, the IP gets a 429 error.
+#   300 requests per 60 seconds on general routes. After that, the IP gets
+#   a 429 error. Auth routes use a stricter limit.
 #
 #   A normal user browsing properties might send 10-20 requests per minute.
 #   A scraper trying to download 10,000 properties will hit the limit in seconds.
@@ -96,7 +97,8 @@ Write-Host "         Score tiers: 0-29=Allow, 30-59=Delay, 60-79=Honeypot, 80+=B
 Write-Host ""
 Write-Host "  [CHECK 1.4] Layer 1: Rate Limiter (ThrottlerGuard)..." -ForegroundColor Yellow
 Write-Host "  [PASS] Registered as APP_GUARD with SmartPropertyThrottlerGuard" -ForegroundColor Green
-Write-Host "         Limit: 30 requests per 60-second window per IP." -ForegroundColor Gray
+Write-Host "         Limit: 300 requests per 60-second window per IP (general)." -ForegroundColor Gray
+Write-Host "         Auth routes: 20 requests per 60-second window per IP." -ForegroundColor Gray
 Write-Host "         DevOps bypass: /metrics, /health, /webhook are excluded." -ForegroundColor Gray
 
 # ---------------------------------------------------------------------------

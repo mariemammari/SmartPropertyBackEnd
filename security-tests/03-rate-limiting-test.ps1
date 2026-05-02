@@ -7,17 +7,17 @@
 #   requests per minute to download your entire property database.            #
 #                                                                             #
 #   The Rate Limiter acts as a "Bouncer" at the door. It counts how many     #
-#   requests each IP sends within a 60-second window. If an IP exceeds 120   #
+#   requests each IP sends within a 60-second window. If an IP exceeds 300   #
 #   requests, ALL subsequent requests are rejected with HTTP 429.            #
 #                                                                             #
 #   REAL-WORLD IMPACT:                                                        #
 #   - A normal user browsing your site sends ~10-20 requests per minute.     #
-#   - A scraper trying to steal 10,000 properties would need ~84 minutes    #
-#     (1.4 hours) because they can only do 120 per minute.                   #
+#   - A scraper trying to steal 10,000 properties would need ~34 minutes    #
+#     (0.6 hours) because they can only do 300 per minute.                   #
 #   - This makes scraping your platform economically unviable.               #
 #                                                                             #
 #   WHAT THIS TEST DOES:                                                      #
-#   It sends 130 rapid-fire requests and verifies that the 121st one gets      #
+#   It sends 310 rapid-fire requests and verifies that the 301st one gets      #
 #   blocked with HTTP 429 "Too Many Requests".                               #
 #                                                                             #
 ###############################################################################
@@ -35,7 +35,7 @@ Write-Host "================================================================" -F
 # CHECK 3.1: Rapid request flood
 # ---------------------------------------------------------------------------
 # HOW THE RATE LIMITER WORKS:
-#   - Each IP gets a "bucket" of 120 tokens per 60-second window
+#   - Each IP gets a "bucket" of 300 tokens per 60-second window
 #   - Every request consumes 1 token
 #   - When tokens run out -> HTTP 429 "Too Many Requests"
 #   - After the 60-second window resets, the IP gets a fresh bucket
@@ -44,23 +44,23 @@ Write-Host "================================================================" -F
 #   Request  #1   -> 200 OK (data returned)
 #   Request  #2   -> 200 OK (data returned)
 #   ...
-#   Request #120  -> 200 OK (last allowed request)
-#   Request #121  -> 429 Too Many Requests (BLOCKED!)
-#   Request #122  -> 429 Too Many Requests (STILL BLOCKED!)
+#   Request #300  -> 200 OK (last allowed request)
+#   Request #301  -> 429 Too Many Requests (BLOCKED!)
+#   Request #302  -> 429 Too Many Requests (STILL BLOCKED!)
 #   ... must wait 60 seconds ...
-#   Request #123  -> 200 OK (new window, fresh bucket)
+#   Request #303  -> 200 OK (new window, fresh bucket)
 # ---------------------------------------------------------------------------
 Write-Host ""
-Write-Host "  [CHECK 3.1] Sending 130 rapid requests..." -ForegroundColor Yellow
-Write-Host "         Configuration: Max 120 requests per 60-second window." -ForegroundColor Gray
-Write-Host "         Expected: Requests 1-120 succeed, request 121+ get HTTP 429." -ForegroundColor Gray
+Write-Host "  [CHECK 3.1] Sending 310 rapid requests..." -ForegroundColor Yellow
+Write-Host "         Configuration: Max 300 requests per 60-second window." -ForegroundColor Gray
+Write-Host "         Expected: Requests 1-300 succeed, request 301+ get HTTP 429." -ForegroundColor Gray
 Write-Host ""
 
 $successCount = 0
 $blockedAt = 0
 $headers = @{ "User-Agent" = $browserUA; "Referer" = "http://localhost:5173" }
 
-for ($i = 1; $i -le 130; $i++) {
+for ($i = 1; $i -le 310; $i++) {
     try {
         Invoke-WebRequest -Uri "$base/" -UseBasicParsing -Method GET -Headers $headers | Out-Null
         $successCount++
@@ -89,9 +89,9 @@ if ($blockedAt -gt 0) {
     Write-Host "         WHAT THIS MEANS FOR SCRAPERS:" -ForegroundColor Cyan
     Write-Host "         A bot trying to download all your properties would be" -ForegroundColor Cyan
     Write-Host "         stopped after just $successCount requests. To scrape 10,000 properties," -ForegroundColor Cyan
-    Write-Host "         it would take them over 5 hours instead of 2 minutes." -ForegroundColor Cyan
+    Write-Host "         it would take them over 30 minutes instead of 2 minutes." -ForegroundColor Cyan
 } else {
-    Write-Host "  [INFO] All 130 requests succeeded. Rate limit may not have triggered." -ForegroundColor Yellow
+    Write-Host "  [INFO] All 310 requests succeeded. Rate limit may not have triggered." -ForegroundColor Yellow
     Write-Host "         This can happen if previous test requests already consumed the window." -ForegroundColor Gray
     Write-Host "         Wait 60 seconds and re-run this test for accurate results." -ForegroundColor Gray
 }

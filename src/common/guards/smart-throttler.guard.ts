@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerRequest } from '@nestjs/throttler';
 import { ExecutionContext } from '@nestjs/common';
 
 /**
@@ -29,11 +29,39 @@ export class SmartPropertyThrottlerGuard extends ThrottlerGuard {
         'actuator',
     ];
 
+    private readonly AUTH_PATH_PREFIXES = ['/auth', '/auth/'];
+    private readonly AUTH_LIMIT = 20;
+    private readonly AUTH_TTL_MS = 60000;
+
     protected async shouldSkip(context: ExecutionContext): Promise<boolean> {
         const req = context.switchToHttp().getRequest();
         const path: string = req?.path || '';
         return this.BYPASS_SEGMENTS.some(seg =>
             path.toLowerCase().includes(seg),
         );
+    }
+
+    protected async handleRequest(requestProps: ThrottlerRequest): Promise<boolean> {
+        const { context } = requestProps;
+        const { req } = this.getRequestResponse(context);
+        const path: string = (req?.path || '').toLowerCase();
+
+        const isAuthPath = this.AUTH_PATH_PREFIXES.some(prefix =>
+            path.startsWith(prefix),
+        );
+        if (!isAuthPath) {
+            return super.handleRequest(requestProps);
+        }
+
+        const limit = Math.min(requestProps.limit, this.AUTH_LIMIT);
+        const ttl = Math.max(requestProps.ttl, this.AUTH_TTL_MS);
+        const blockDuration = Math.max(requestProps.blockDuration, ttl);
+
+        return super.handleRequest({
+            ...requestProps,
+            limit,
+            ttl,
+            blockDuration,
+        });
     }
 }

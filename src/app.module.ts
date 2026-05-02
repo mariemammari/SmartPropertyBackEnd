@@ -35,7 +35,7 @@ import { RecommandationModule } from './Recommandation/RecommandationModule';
   imports: [
     ThrottlerModule.forRoot([{
       ttl: 60000,   // 60 seconds (v6 uses milliseconds)
-      limit: 120,   // max 120 requests per 60s window
+      limit: 300,   // default: allow faster navigation on general routes
     }]),
     PrometheusModule.register(),
     ConfigModule.forRoot({ isGlobal: true }),
