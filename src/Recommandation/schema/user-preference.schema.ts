@@ -4,22 +4,22 @@ import { Document, Types } from 'mongoose';
 @Schema({ timestamps: true })
 export class UserPreference extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, unique: true })
-  userId: Types.ObjectId;
+  userId!: Types.ObjectId;
 
   @Prop({ required: true })
-  budgetMin: number;
+  budgetMin!: number;
 
   @Prop({ required: true })
-  budgetMax: number;
+  budgetMax!: number;
 
   @Prop({ required: true })
-  preferredPropertyType: string; // Ex: "Apartment"
+  preferredPropertyType!: string; // Ex: "Apartment"
 
   @Prop({ required: true })
-  preferredCity: string; // Ex: "Tunis"
+  preferredCity!: string; // Ex: "Tunis"
 
   @Prop({ required: true })
-  monthlyIncome: number;
+  monthlyIncome!: number;
 }
 
 export const UserPreferenceSchema = SchemaFactory.createForClass(UserPreference);
