@@ -253,8 +253,8 @@ export class PropertySubmissionService {
 
     const normalizedStatus = status?.trim();
     const statusFilter = normalizedStatus
-      ? { $in: [normalizedStatus] }
-      : { $in: [ListingStatus.PENDING_REVIEW, 'under_review'] };
+      ? (normalizedStatus as ListingStatus)
+      : ListingStatus.PENDING_REVIEW;
 
     const query = {
       assignedAgentId: agentIdObj,

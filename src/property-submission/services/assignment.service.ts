@@ -9,6 +9,7 @@ import { Model, Types, ClientSession } from 'mongoose';
 import {
   PropertyListing,
   PropertyListingDocument,
+  ListingStatus,
 } from '../../property-listing/schemas/property-listing.schema';
 import {
   User,
@@ -44,14 +45,14 @@ export class AssignmentService {
 
   /**
    * Calculate workload for a given agent:
-   * Count of pending_review + under_review submissions assigned to them.
+   * Count of pending_review submissions assigned to them.
    */
   private async calculateAgentWorkload(
     agentId: Types.ObjectId,
   ): Promise<number> {
     const count = await this.listingModel.countDocuments({
       assignedAgentId: agentId,
-      status: { $in: ['pending_review', 'under_review'] },
+      status: ListingStatus.PENDING_REVIEW,
     });
     return count;
   }
