@@ -1,0 +1,30 @@
+groups:
+  - name: smartproperty-alerts
+    rules:
+
+      - alert: BackendDown
+        expr: up{job="nestjs-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "🔴 Backend SmartProperty est DOWN !"
+          description: "Le backend NestJS ne répond plus depuis 1 minute."
+
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes{job="nestjs-backend"} > 200000000
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "⚠️ Mémoire élevée sur le backend"
+          description: "La mémoire utilisée dépasse 200MB."
+
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total{job="nestjs-backend"}[5m]) > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "⚠️ CPU élevé sur le backend"
+          description: "Le CPU dépasse 80% depuis 2 minutes."

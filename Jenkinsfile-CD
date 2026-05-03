@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'hanafkiri5/smart-property-backend'
+        IMAGE_TAG  = 'latest'
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'
+    }
+
+    stages {
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh '''
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+                    kubectl rollout restart deployment/smart-property-backend
+                    kubectl rollout status deployment/smart-property-backend --timeout=120s || true
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline CD backend OK !'
+        }
+        failure {
+            echo 'Pipeline CD échoué !'
+        }
+    }
+}

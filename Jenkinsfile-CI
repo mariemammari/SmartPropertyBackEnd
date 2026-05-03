@@ -5,7 +5,6 @@ pipeline {
         NODE_OPTIONS = "--max_old_space_size=4096"
         IMAGE_NAME   = 'hanafkiri5/smart-property-backend'
         IMAGE_TAG    = 'latest'
-        KUBECONFIG   = '/var/lib/jenkins/.kube/config'
     }
 
     stages {
@@ -67,17 +66,6 @@ pipeline {
                 '''
             }
         }
-
-        stage('Deploy to Kubernetes (kubeadm)') {
-            steps {
-                sh '''
-                    kubectl apply -f k8s/deployment.yaml
-                    kubectl apply -f k8s/service.yaml
-                    kubectl rollout restart deployment/smart-property-backend
-                    kubectl rollout status deployment/smart-property-backend --timeout=120s || true
-                '''
-            }
-        }
     }
 
     post {
@@ -86,10 +74,11 @@ pipeline {
             archiveArtifacts artifacts: '**/coverage/**', allowEmptyArchive: true
         }
         success {
-            echo 'Pipeline CD backend OK !'
+            echo 'CI Pipeline réussi — déclenchement du CD...'
+            build job: 'smart-property-CD', wait: false
         }
         failure {
-            echo 'Pipeline échoué !'
+            echo 'CI Pipeline échoué !'
         }
     }
 }
