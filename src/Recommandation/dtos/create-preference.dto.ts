@@ -1,23 +1,28 @@
-import { IsString, IsNumber, IsNotEmpty } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, IsOptional, IsIn } from 'class-validator';
 
 export class CreatePreferenceDto {
   @IsNumber()
   @IsNotEmpty()
-  budgetMin: number;
+  budgetMin!: number;
 
   @IsNumber()
   @IsNotEmpty()
-  budgetMax: number;
+  budgetMax!: number;
 
   @IsString()
   @IsNotEmpty()
-  preferredPropertyType: string;
+  preferredPropertyType!: string;
 
   @IsString()
   @IsNotEmpty()
-  preferredCity: string;
+  preferredCity!: string;
+
+  @IsString()
+  @IsOptional()
+  @IsIn(['rent', 'sale'])
+  preferredPurpose?: string;
 
   @IsNumber()
   @IsNotEmpty()
-  monthlyIncome: number;
+  monthlyIncome!: number;
 }

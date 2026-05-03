@@ -18,6 +18,9 @@ export class UserPreference extends Document {
   @Prop({ required: true })
   preferredCity!: string; // Ex: "Tunis"
 
+  @Prop({ required: false, enum: ['rent', 'sale'] })
+  preferredPurpose?: string;
+
   @Prop({ required: true })
   monthlyIncome!: number;
 }

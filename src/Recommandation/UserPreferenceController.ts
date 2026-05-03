@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, Get, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, HttpException, HttpStatus, Query } from '@nestjs/common';
 import { CreatePreferenceDto } from './dtos/create-preference.dto';
 import { UserPreferenceService } from './Services/UserPreferenceService';
 import { RecommenderService } from './Services/recommender.service';
@@ -8,7 +8,7 @@ export class UserPreferenceController {
   constructor(
     private readonly preferenceService: UserPreferenceService,
     private readonly recommenderService: RecommenderService,
-  ) {}
+  ) { }
 
   // 1. Enregistrer ou mettre à jour les préférences (POST)
   @Post(':userId')
@@ -28,7 +28,10 @@ export class UserPreferenceController {
 
   // 3. Obtenir les recommandations personnalisées de l'IA (GET)
   @Get(':userId/ai-recommendations')
-  async getAiRecommendations(@Param('userId') userId: string) {
+  async getAiRecommendations(
+    @Param('userId') userId: string,
+    @Query('limit') limit?: string,
+  ) {
     // On récupère d'abord les préférences en base
     const preferences = await this.preferenceService.getPreferences(userId);
 
@@ -40,6 +43,8 @@ export class UserPreferenceController {
     }
 
     // On envoie les préférences au moteur IA (FastAPI)
-    return this.recommenderService.getRecommendations(preferences);
+    const parsedLimit = Number(limit);
+    const safeLimit = Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 10;
+    return this.recommenderService.getRecommendations(preferences, safeLimit);
   }
 }
