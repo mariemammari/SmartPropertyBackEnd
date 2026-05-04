@@ -45,9 +45,9 @@ describe('ApplicationService', () => {
   it('should allow accept/reject updates (basic test)', async () => {
     // Just a placeholder test to validate the task
     const mockApplication = { _id: '1', status: ApplicationStatus.PENDING };
-    mockApplicationModel.findByIdAndUpdate.mockResolvedValue({ 
-      ...mockApplication, 
-      status: ApplicationStatus.APPROVED 
+    mockApplicationModel.findByIdAndUpdate.mockResolvedValue({
+      ...mockApplication,
+      status: ApplicationStatus.APPROVED
     });
 
     const result = await service.updateStatus('1', { status: ApplicationStatus.APPROVED });

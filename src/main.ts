@@ -36,8 +36,22 @@ async function bootstrap() {
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   // Enable CORS for frontend communication
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'https://smartproperty-front.vercel.app',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:4200',
+    'http://127.0.0.1:4200',
+  ].filter(Boolean);
+
   app.enableCors({
-    origin: 'https://smartproperty-front.vercel.app',
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'), false);
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
