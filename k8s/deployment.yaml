@@ -23,11 +23,9 @@ spec:
           env:
             - name: NODE_ENV
               value: production
-            - name: MONGODB_URI
-              valueFrom:
-                secretKeyRef:
-                  name: backend-secrets
-                  key: MONGODB_URI
+          envFrom:
+            - secretRef:
+                name: backend-secrets
 ---
 apiVersion: v1
 kind: Service
@@ -143,7 +141,7 @@ spec:
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:
-                  name: backend-secrets
+                  name: recommendation-secrets
                   key: MONGODB_URI
 ---
 apiVersion: v1

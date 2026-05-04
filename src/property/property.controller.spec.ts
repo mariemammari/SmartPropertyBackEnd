@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PropertyController } from './property.controller';
 import { PropertyService } from './property.service';
 import { UserRole } from '../user/schemas/user.schema';
+import { NearbyService } from '../nearby/nearby.service';
 
 describe('PropertyController', () => {
   let controller: PropertyController;
@@ -16,6 +17,9 @@ describe('PropertyController', () => {
     update: jest.fn(),
     remove: jest.fn(),
   };
+  const nearbyServiceMock = {
+    getNearby: jest.fn(),
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -26,6 +30,10 @@ describe('PropertyController', () => {
         {
           provide: PropertyService,
           useValue: propertyServiceMock,
+        },
+        {
+          provide: NearbyService,
+          useValue: nearbyServiceMock,
         },
       ],
     }).compile();
