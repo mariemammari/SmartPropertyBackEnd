@@ -7,6 +7,7 @@ import { Property } from './schemas/property.schema';
 import { PropertyListing } from '../property-listing/schemas/property-listing.schema';
 import { User } from '../user/schemas/user.schema';
 import { RentalService } from '../rental/rental.service';
+import { PropertyMediaService } from '../Property-Media/property-media.service';
 
 describe('PropertyService', () => {
   let service: PropertyService;
@@ -40,6 +41,12 @@ describe('PropertyService', () => {
     createFromPropertyStatusChange: jest.fn(),
     terminateActiveRentalsForProperty: jest.fn(),
   };
+  const propertyMediaServiceMock = {
+    attachMediaToProperty: jest.fn(),
+    detachMediaFromProperty: jest.fn(),
+    removeAllForProperty: jest.fn(),
+    removeAllByProperty: jest.fn(),
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -62,6 +69,10 @@ describe('PropertyService', () => {
         {
           provide: RentalService,
           useValue: rentalServiceMock,
+        },
+        {
+          provide: PropertyMediaService,
+          useValue: propertyMediaServiceMock,
         },
       ],
     }).compile();
