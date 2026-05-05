@@ -42,6 +42,9 @@ describe('PropertyService', () => {
     terminateActiveRentalsForProperty: jest.fn(),
   };
   const propertyMediaServiceMock = {
+    attachMediaToProperty: jest.fn(),
+    detachMediaFromProperty: jest.fn(),
+    removeAllForProperty: jest.fn(),
     removeAllByProperty: jest.fn(),
   };
 
